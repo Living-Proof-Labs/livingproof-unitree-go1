@@ -14,6 +14,7 @@ class Go1:
     id = "unitree-go1"
     root: Path = ROOT
     width_decimals = 2
+    camera = (2.2, -35.0, 200.0)  # stand and media clips: tracking distance, elevation, azimuth
     actuation = "position"
 
     def base_body(self, name: str) -> str:
