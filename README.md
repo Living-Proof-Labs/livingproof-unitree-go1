@@ -14,7 +14,7 @@ Living Proof Labs does not train or tune controllers. A robot is validated only 
 | `runner.json` | Runner settings (sample rate, seed noise, standing check), not a specification format |
 | `verification.lock.json` | What a verification run uses. Its `releases` block is the one place for the specs, runner, verifier and reporter refs (tag and commit). It also holds the world, the configuration's name, version and sha256, and the plan (20 trials, seeds 1–20, 0.5 m/s, 18 required) |
 | `src/lpl_go1/` | Fetching, scene, profiles, the standing check, `evidence` (sim observations for the verifier, no grading) and the Playground reference loop |
-| `tools/repin.py` | Fills `PENDING_RELEASE` refs from real release tags and checks that none remain |
+| `task repin` (`capability_verifier.repin` at the locked verifier commit) | Fills `PENDING_RELEASE` refs from real release tags and checks that none remain |
 | `.github/workflows/verify.yml` | Sim evidence → capability verifier → capability report |
 
 **One configuration.** Unitree publishes no Go1 locomotion policy. unitree_rl_gym (276801e) ships G1, H1 and H1-2 policies only; unitree_rl_lab and unitree_rl_mjlab ship G1 only; unitree_mujoco ships none; unitree_guide is a model-based ROS controller, not a policy artifact. So `stock` is not offered, and a walk-hallway request for it is `UNSUPPORTED` (configuration_offered).
@@ -35,7 +35,7 @@ Living Proof Labs does not train or tune controllers. A robot is validated only 
 ```
 task setup          # uv sync + fetch and verify every pin
 task check          # ruff, formatting, profiles against the pinned v1.5.0 schemas
-task test           # pytest: schemas, gains, parameters, lock, repin, PD
+task test           # pytest: schemas, gains, parameters, lock, PD
 task reference      # tick-by-tick match against play_go1_joystick.py (500 ticks)
 task evidence CONFIGURATION=playground   # sim evidence, seeds from the lock
 task stand          # zero-command standing check
