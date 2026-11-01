@@ -13,7 +13,9 @@ from livingproof_sim_mujoco import pins
 from livingproof_sim_mujoco.pins import ChecksumError, sha256
 from lpl_go1.profiles import Unsupported, configuration, controller, robot, validate
 from lpl_go1.scene import SCENE, assets, build, place_pose
-from lpl_go1.walk import initial_state, runner_settings
+from livingproof_sim_mujoco.walk import initial_state
+
+from lpl_go1.adapter import ROBOT
 
 
 def local(group: str, path: str):
@@ -217,5 +219,5 @@ def test_initial_state_holds_home_until_the_first_tick():
     scene = build()
     m, d = scene.model, mujoco.MjData(scene.model)
     c = controller("playground", scene)
-    initial_state(m, d, c, 3, runner_settings()["initial_noise"], "spawn-entrance")
+    initial_state(m, d, c, 3, ROBOT.runner_settings()["initial_noise"], "spawn-entrance")
     np.testing.assert_array_equal(d.ctrl, m.key_ctrl[m.key("home").id])
