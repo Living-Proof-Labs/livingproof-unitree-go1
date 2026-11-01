@@ -33,7 +33,7 @@ Living Proof Labs does not train or tune controllers. A robot is validated only 
 ## Tasks
 
 ```
-uv sync && uv run python -m lpl_go1.fetch          # uv sync + fetch and verify every pin
+uv sync && uv run pytest tests          # uv sync + tests (the session fetches and verifies every pin)
 uv run ruff check . && uv run ruff format --check .          # ruff, formatting, profiles against the pinned v1.5.0 schemas
 uv run pytest tests           # pytest: schemas, gains, parameters, lock, PD
 task reference      # tick-by-tick match against play_go1_joystick.py (500 ticks)

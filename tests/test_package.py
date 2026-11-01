@@ -9,10 +9,20 @@ import pytest
 
 from lpl_go1 import ROOT
 from lpl_go1 import scenario as sc
-from lpl_go1.fetch import ChecksumError, fetch, local, sha256
+from livingproof_sim_mujoco import pins
+from livingproof_sim_mujoco.pins import ChecksumError, sha256
 from lpl_go1.profiles import Unsupported, configuration, controller, robot, validate
 from lpl_go1.scene import SCENE, assets, build, place_pose
 from lpl_go1.walk import initial_state, runner_settings
+
+
+def local(group: str, path: str):
+    return pins.local(group, path, ROOT)
+
+
+def fetch(root=ROOT, opener=None):
+    return pins.fetch(root, opener) if opener else pins.fetch(root)
+
 
 CONFIGS = ["playground"]
 SCENARIO_README = "specs/scenarios/walk-hallway/README.md"
