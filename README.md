@@ -33,17 +33,17 @@ Living Proof Labs does not train or tune controllers. A robot is validated only 
 ## Tasks
 
 ```
-task setup          # uv sync + fetch and verify every pin
-task check          # ruff, formatting, profiles against the pinned v1.5.0 schemas
-task test           # pytest: schemas, gains, parameters, lock, PD
+uv sync && uv run python -m lpl_go1.fetch          # uv sync + fetch and verify every pin
+uv run ruff check . && uv run ruff format --check .          # ruff, formatting, profiles against the pinned v1.5.0 schemas
+uv run pytest tests           # pytest: schemas, gains, parameters, lock, PD
 task reference      # tick-by-tick match against play_go1_joystick.py (500 ticks)
-task evidence CONFIGURATION=playground   # sim evidence, seeds from the lock
+uv run python -m lpl_go1.evidence playground artifacts/evidence/playground   # sim evidence, seeds from the lock
 task stand          # zero-command standing check
 task repin:check    # fails while any release ref is PENDING_RELEASE
 task repin -- runner=v1.4.0 verifier=vX.Y.Z reporter=vX.Y.Z
 ```
 
-`task evidence` refuses while the lock has `PENDING_RELEASE` refs; for a local run before the
+`python -m lpl_go1.evidence` refuses while the lock has `PENDING_RELEASE` refs; for a local run before the
 releases exist, pass `-- --allow-pending` (the manifest lists what was pending). Grading is the
 capability verifier's and the capability report's job: `PASS` at 18 of 20 under
 `all-required-v1`, with a Wilson 95% interval.
