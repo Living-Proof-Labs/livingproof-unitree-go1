@@ -1,0 +1,36 @@
+[project]
+name = "livingproof-unitree-go1"
+version = "0.1.0"
+description = "Unitree Go1 robot package: pinned model, published controller and the hallway walk check"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+dependencies = [
+    "mujoco==3.17.0",
+    "numpy>=1.26",
+    "imageio[ffmpeg]>=2.34",
+    "livingproof-sim-mujoco",
+    "jsonschema>=4.26.0",
+    "referencing>=0.37.0",
+]
+
+[dependency-groups]
+dev = ["pytest==8.4.2", "ruff==0.14.2"]
+
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/lpl_go1"]
+
+[tool.uv.sources]
+# The runner is livingproof-sim-mujoco audit/g1-playground-loop-fix (3de1a91 = eb2b0dc + the
+# policy-loop fix: current-state observation, configurable first tick); not pushed or
+# released; replace with a tagged git or wheel URL once it is.
+livingproof-sim-mujoco = { path = "../livingproof-sim-mujoco-loopfix", editable = true }
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100

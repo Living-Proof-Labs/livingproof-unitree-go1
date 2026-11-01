@@ -1,0 +1,51 @@
+{
+  "$comment": "Robot profile (robot-capability-specs v1.5.0, specs/robots). model_source is the Playground Go1 feet-only MJCF; its meshes are mujoco_menagerie unitree_go1 @ 1b86ece (BSD-3-Clause, (c) Unitree Robotics), pinned in pins.json with every other upstream file.",
+  "format": "livingproof-robot-profile/0.1",
+  "id": "unitree-go1",
+  "manufacturer": "Unitree Robotics",
+  "model": "Go1",
+  "class": "quadruped",
+  "model_source": {
+    "repo": "https://github.com/google-deepmind/mujoco_playground",
+    "path": "mujoco_playground/_src/locomotion/go1/xmls/go1_mjx_feetonly.xml",
+    "commit": "12ad7f3842791ced39f27e5ac96d066bbe361653",
+    "sha256": "c33da7ff33b33d305163b6b05fadde9430b8777ccf1db88fda2e58d9cfabf82a",
+    "license": "Apache-2.0 (MJCF); meshes BSD-3-Clause (Unitree Robotics, via mujoco_menagerie)"
+  },
+  "dimensions": {
+    "width": {
+      "value": 0.282,
+      "unit": "m",
+      "source": "measured",
+      "ref": "task profile:measure (mesh vertices, home keyframe)"
+    },
+    "length": {
+      "value": 0.679,
+      "unit": "m",
+      "source": "measured",
+      "ref": "task profile:measure (mesh vertices, home keyframe)"
+    },
+    "height": {
+      "value": 0.4,
+      "unit": "m",
+      "source": "published",
+      "ref": "Unitree Go1 specification (645 x 280 x 400 mm standing)"
+    },
+    "mass": {
+      "value": 12.74,
+      "unit": "kg",
+      "source": "measured",
+      "ref": "task profile:measure (sum of MJCF body masses)"
+    }
+  },
+  "configurations": [
+    {
+      "name": "playground",
+      "path": "configurations/playground.json"
+    }
+  ],
+  "default_configuration": "playground",
+  "simulators": [
+    "mujoco"
+  ]
+}
