@@ -1,0 +1,225 @@
+{
+  "$comment": "Configuration profile (robot-capability-specs v1.5.0). Gains and limits are the Playground's published Go1 values, copied here so this file states what runs; tests check them against the pinned upstream files.",
+  "format": "livingproof-configuration-profile/0.1",
+  "robot": "unitree-go1",
+  "name": "playground",
+  "version": "1.0.0",
+  "summary": "Google DeepMind MuJoCo Playground Go1 joystick controller (go1_policy.onnx) on the Playground's own Go1 MJCF and <position> actuators.",
+  "controller": {
+    "publisher": "Google DeepMind",
+    "artifact": {
+      "repo": "https://github.com/google-deepmind/mujoco_playground",
+      "path": "mujoco_playground/experimental/sim2sim/onnx/go1_policy.onnx",
+      "commit": "12ad7f3842791ced39f27e5ac96d066bbe361653",
+      "sha256": "386cde6a1eac679e2f2a313ade2b395d9f26905b151ee3b019c2c4163d49b6f2",
+      "license": "Apache-2.0"
+    },
+    "format": "onnx",
+    "interface": [
+      "velocity_command"
+    ],
+    "rate_hz": 50
+  },
+  "locomotion": {
+    "max_speed": {
+      "value": 1.5,
+      "unit": "m/s",
+      "source": "published",
+      "ref": "Playground go1 joystick.py command range vx [-1.5, 1.5] (play_go1_joystick.py vel_scale_x 1.5)"
+    },
+    "nominal_base_height": {
+      "value": 0.278,
+      "unit": "m",
+      "source": "published",
+      "ref": "Playground go1 MJCF keyframe home base z"
+    },
+    "fall_base_height": {
+      "value": 0.18,
+      "unit": "m",
+      "source": "chosen",
+      "reason": "About two-thirds of the home trunk height (0.278 m), the same rule as the G1 configurations."
+    }
+  },
+  "settings": {
+    "adapter": "playground_go1_joystick",
+    "reference": {
+      "repo": "https://github.com/google-deepmind/mujoco_playground",
+      "path": "mujoco_playground/experimental/sim2sim/play_go1_joystick.py",
+      "commit": "12ad7f3842791ced39f27e5ac96d066bbe361653",
+      "sha256": "f422e041e9382d96a6b4d60f7a9065f2bc849599dadbd57939fd03677292abb9",
+      "license": "Apache-2.0"
+    },
+    "training_env": {
+      "repo": "https://github.com/google-deepmind/mujoco_playground",
+      "path": "mujoco_playground/_src/locomotion/go1/joystick.py",
+      "commit": "12ad7f3842791ced39f27e5ac96d066bbe361653",
+      "sha256": "519680905e024304c1df4c209aebc80fcdb22a74487d9e775f0077cd8c6fe3ec",
+      "license": "Apache-2.0"
+    },
+    "ctrl_dt_s": 0.02,
+    "physics_dt_s": 0.004,
+    "action_scale": 0.5,
+    "observation": {
+      "order": [
+        "local_linvel",
+        "gyro",
+        "gravity",
+        "joint_pos",
+        "joint_vel",
+        "last_action",
+        "command"
+      ],
+      "linvel_sensor": "local_linvel",
+      "gyro_sensor": "gyro",
+      "imu_site": "imu",
+      "note": "No gait phase; the command is the last term (play_go1_joystick.py get_obs)."
+    },
+    "first_tick": 4,
+    "first_tick_note": "play_go1_joystick.py increments its counter before the modulo test, so the policy first acts on the 5th control callback (physics step index 4), then every 5 steps.",
+    "initial_keyframe": "home",
+    "default_pose": "home keyframe qpos[7:]",
+    "gains": {
+      "kp": {
+        "FR_hip_joint": 35.0,
+        "FR_thigh_joint": 35.0,
+        "FR_calf_joint": 35.0,
+        "FL_hip_joint": 35.0,
+        "FL_thigh_joint": 35.0,
+        "FL_calf_joint": 35.0,
+        "RR_hip_joint": 35.0,
+        "RR_thigh_joint": 35.0,
+        "RR_calf_joint": 35.0,
+        "RL_hip_joint": 35.0,
+        "RL_thigh_joint": 35.0,
+        "RL_calf_joint": 35.0
+      },
+      "joint_damping": {
+        "value": {
+          "FR_hip_joint": 0.5,
+          "FR_thigh_joint": 0.5,
+          "FR_calf_joint": 0.5,
+          "FL_hip_joint": 0.5,
+          "FL_thigh_joint": 0.5,
+          "FL_calf_joint": 0.5,
+          "RR_hip_joint": 0.5,
+          "RR_thigh_joint": 0.5,
+          "RR_calf_joint": 0.5,
+          "RL_hip_joint": 0.5,
+          "RL_thigh_joint": 0.5,
+          "RL_calf_joint": 0.5
+        },
+        "note": "the D term: passive joint damping in the MJCF (joystick.py Kd 0.5), unchanged"
+      },
+      "source": "Playground go1 MJCF <position> actuators (kp 35; joystick.py Kp 35)"
+    },
+    "limits": {
+      "target_range_rad": {
+        "FR_hip_joint": [
+          -0.863,
+          0.863
+        ],
+        "FR_thigh_joint": [
+          -0.6859999999999999,
+          4.501
+        ],
+        "FR_calf_joint": [
+          -2.818,
+          -0.8879999999999999
+        ],
+        "FL_hip_joint": [
+          -0.863,
+          0.863
+        ],
+        "FL_thigh_joint": [
+          -0.6859999999999999,
+          4.501
+        ],
+        "FL_calf_joint": [
+          -2.818,
+          -0.8879999999999999
+        ],
+        "RR_hip_joint": [
+          -0.863,
+          0.863
+        ],
+        "RR_thigh_joint": [
+          -0.6859999999999999,
+          4.501
+        ],
+        "RR_calf_joint": [
+          -2.818,
+          -0.8879999999999999
+        ],
+        "RL_hip_joint": [
+          -0.863,
+          0.863
+        ],
+        "RL_thigh_joint": [
+          -0.6859999999999999,
+          4.501
+        ],
+        "RL_calf_joint": [
+          -2.818,
+          -0.8879999999999999
+        ]
+      },
+      "target_range_note": "the <position> actuators' ctrlrange (inheritrange 1), enforced by MuJoCo",
+      "torque_limits_nm": {
+        "value": {
+          "FR_hip_joint": [
+            -23.7,
+            23.7
+          ],
+          "FR_thigh_joint": [
+            -23.7,
+            23.7
+          ],
+          "FR_calf_joint": [
+            -35.55,
+            35.55
+          ],
+          "FL_hip_joint": [
+            -23.7,
+            23.7
+          ],
+          "FL_thigh_joint": [
+            -23.7,
+            23.7
+          ],
+          "FL_calf_joint": [
+            -35.55,
+            35.55
+          ],
+          "RR_hip_joint": [
+            -23.7,
+            23.7
+          ],
+          "RR_thigh_joint": [
+            -23.7,
+            23.7
+          ],
+          "RR_calf_joint": [
+            -35.55,
+            35.55
+          ],
+          "RL_hip_joint": [
+            -23.7,
+            23.7
+          ],
+          "RL_thigh_joint": [
+            -23.7,
+            23.7
+          ],
+          "RL_calf_joint": [
+            -35.55,
+            35.55
+          ]
+        },
+        "source": "published",
+        "ref": "Playground go1 MJCF actuator forcerange, enforced by the model"
+      }
+    },
+    "actuation": "position: Playground's own <position> actuators, unchanged; MuJoCo computes the PD inside mj_step"
+  },
+  "known_issues": "Single published configuration: Unitree publishes no Go1 locomotion policy (unitree_rl_gym, unitree_rl_lab, unitree_rl_mjlab, unitree_mujoco checked)."
+}

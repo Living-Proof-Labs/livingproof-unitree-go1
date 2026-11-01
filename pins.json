@@ -1,0 +1,138 @@
+{
+  "$comment": "Every upstream file by repository, commit and sha256. task fetch downloads them into .cache/ and verifies each one; nothing is vendored.",
+  "groups": {
+    "playground": {
+      "repository": "google-deepmind/mujoco_playground",
+      "commit": "12ad7f3842791ced39f27e5ac96d066bbe361653",
+      "dest": ".cache/playground",
+      "note": "Go1 feet-only MJCF, the published go1_policy.onnx, and the sources of truth for its observation and action layout (play_go1_joystick.py, joystick.py).",
+      "files": {
+        "LICENSE": {
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+          "bytes": 11358
+        },
+        "mujoco_playground/_src/locomotion/go1/xmls/scene_mjx_feetonly_flat_terrain.xml": {
+          "sha256": "f89261e90ff2e92b5fcaaecd94fa6d3850c9574c2fc698cd01bfc05140056ed0",
+          "bytes": 2191
+        },
+        "mujoco_playground/_src/locomotion/go1/xmls/go1_mjx_feetonly.xml": {
+          "sha256": "c33da7ff33b33d305163b6b05fadde9430b8777ccf1db88fda2e58d9cfabf82a",
+          "bytes": 12366
+        },
+        "mujoco_playground/_src/locomotion/go1/xmls/sensor_feet.xml": {
+          "sha256": "75c4e09936f4bbc529f4c538485e493283359df7d1bf6678390a830bef9b5e13",
+          "bytes": 441
+        },
+        "mujoco_playground/experimental/sim2sim/onnx/go1_policy.onnx": {
+          "sha256": "386cde6a1eac679e2f2a313ade2b395d9f26905b151ee3b019c2c4163d49b6f2",
+          "bytes": 772916
+        },
+        "mujoco_playground/experimental/sim2sim/play_go1_joystick.py": {
+          "sha256": "f422e041e9382d96a6b4d60f7a9065f2bc849599dadbd57939fd03677292abb9",
+          "bytes": 3653
+        },
+        "mujoco_playground/_src/locomotion/go1/joystick.py": {
+          "sha256": "519680905e024304c1df4c209aebc80fcdb22a74487d9e775f0077cd8c6fe3ec",
+          "bytes": 21519
+        },
+        "mujoco_playground/_src/locomotion/go1/base.py": {
+          "sha256": "4f9fafd8ddffebc27ec1c28dbf7ead042573d547e122f41e5f1693d4229d893f",
+          "bytes": 4080
+        },
+        "mujoco_playground/_src/locomotion/go1/go1_constants.py": {
+          "sha256": "03a1b094311ee8cc85d61b3f2b2001c65072267d4439eb159f0977c3457c7109",
+          "bytes": 1700
+        }
+      }
+    },
+    "menagerie": {
+      "repository": "google-deepmind/mujoco_menagerie",
+      "commit": "1b86ece576591213e2b666ebf59508454200ca97",
+      "dest": ".cache/menagerie",
+      "note": "Go1 meshes (BSD-3-Clause, Unitree Robotics). The commit Playground pins in mjx_env.py; loaded through an asset map as Playground's go1 base.get_assets does.",
+      "files": {
+        "unitree_go1/LICENSE": {
+          "sha256": "2b794acf1e250f5545ae5a47d81e5685ea5488ce077d1087ed8be5f81e9ba5c0",
+          "bytes": 1559
+        },
+        "unitree_go1/go1.xml": {
+          "sha256": "d5a7466784c8e72fd174cc7fa5a92754a1a0a6d458a1dec79e7ca0abc9525c4a",
+          "bytes": 10875
+        },
+        "unitree_go1/assets/calf.stl": {
+          "sha256": "ad3685e132454fd64e4ca3e5089f0d812fb53958e95c14913a22e3193e9e9ed8",
+          "bytes": 1447984
+        },
+        "unitree_go1/assets/hip.stl": {
+          "sha256": "b6599b9dd2751ebd87449203223f5683a6c235268b76fcc443e00e0d974a06c0",
+          "bytes": 1505284
+        },
+        "unitree_go1/assets/thigh.stl": {
+          "sha256": "bbf7c0a441323088c59276dbec8a32e708a1c61f42d30a6f6775176366ea23f8",
+          "bytes": 793584
+        },
+        "unitree_go1/assets/thigh_mirror.stl": {
+          "sha256": "1a90b89de47a57cb12a2d703f6b008a6ace8a1890a381c27723296fd0d00b9d8",
+          "bytes": 950834
+        },
+        "unitree_go1/assets/trunk.stl": {
+          "sha256": "051a57995dc6f892fc9bc53cd94e9a894f3dc209fd646e94d55d764150013970",
+          "bytes": 5619284
+        }
+      }
+    },
+    "worlds": {
+      "repository": "Living-Proof-Labs/livingproof-worlds",
+      "commit": "9b3e7119aa93a3370383227fb30bd39a9dd72b4b",
+      "files": {
+        "worlds/hallway-open/0.1.0/world.json": {
+          "sha256": "d60bb8aa6a72c8403fb6674cc9d803962c1484bc3e163527988e8c57ccec775c",
+          "bytes": 2380
+        }
+      },
+      "dest": ".cache/worlds",
+      "tag": "v1.1.0"
+    },
+    "specs": {
+      "repository": "Living-Proof-Labs/robot-capability-specs",
+      "tag": "v1.5.0",
+      "commit": "1df6eaa4a194315da51e5d2b05cee8073fc7389b",
+      "dest": ".cache/specs",
+      "note": "Schemas and the walk-hallway scenario (#22 merged as 1df6eaa, released as v1.5.0).",
+      "files": {
+        "specs/robots/robot-profile.schema.json": {
+          "sha256": "90a02a6b9371cd81b6a5e07cdafeda02727f36c5e17ba9777a9a09807a5d5226",
+          "bytes": 3241
+        },
+        "specs/robots/configuration-profile.schema.json": {
+          "sha256": "3208a2ca0b852eb9e0654c5e56d95195f1f887428e70a06514f44f96aab81bf0",
+          "bytes": 2340
+        },
+        "specs/robots/run-manifest.schema.json": {
+          "sha256": "00730f3be81f2c96a3a7a01c8c98e60048729b6fae8c2e7ad0f05506be107e50",
+          "bytes": 3287
+        },
+        "specs/robots/README.md": {
+          "sha256": "6b3d36ebcbfbe3fb91e225a5d82cd83aab7afd1305e936804e86ccb7071d9b59",
+          "bytes": 5092
+        },
+        "specs/scenarios/walk-hallway/README.md": {
+          "sha256": "d89cb65625895b80b1c319f0802ee42bda7c413fabdfc3b6686d6627e7c2e6c0",
+          "bytes": 4998
+        },
+        "specs/scenarios/walk-hallway/walk-hallway.feature": {
+          "sha256": "1d62f9a5da5f2e8fc3255495d207138eb8b6e7e12dbc45757c8d430326cc05db",
+          "bytes": 1527
+        },
+        "specs/scenarios/walk-hallway/compare-configurations.feature": {
+          "sha256": "c0874feb01602e3e134ab01104abe9d050642aba427c80205ffadc016a39ee08",
+          "bytes": 1610
+        },
+        "LICENSES/CC-BY-4.0.txt": {
+          "sha256": "d557539df68e771cc1eedcc91d13f70fca930e508d11eedcafa4b15db49e3744",
+          "bytes": 17023
+        }
+      }
+    }
+  }
+}
