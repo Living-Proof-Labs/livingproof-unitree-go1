@@ -9,11 +9,9 @@ import pytest
 
 from lpl_go1 import ROOT
 from lpl_go1 import scenario as sc
-from lpl_go1.clearance import Clearance
 from lpl_go1.fetch import ChecksumError, fetch, local, sha256
 from lpl_go1.profiles import Unsupported, configuration, controller, robot, validate
 from lpl_go1.scene import SCENE, assets, build, place_pose
-from lpl_go1.stats import wilson
 from lpl_go1.walk import initial_state, runner_settings
 
 CONFIGS = ["playground"]
@@ -143,14 +141,8 @@ def test_scenario_parameters_follow_the_pinned_acceptance_table():
     assert (p["time_limit"], p["exit_x"], p["wall_clearance"]) == (27.0, 3.0, 0.10)
     assert p["fall_height"] == 0.18
     assert p["lateral_limit"] == pytest.approx(0.75 - robot()["dimensions"]["width"]["value"] / 2)
-    assert sc.SEEDS == list(range(1, 21)) and sc.REQUIRED_PASSES == 18
-
-
-def test_manifest_validates():
-    m, _ = sc.manifest("playground", "run")
-    validate("manifest", m)
-    assert m["robot"]["id"] == "unitree-go1"
-    assert m["configuration"]["sha256"] == configuration("playground")[1]
+    plan = json.loads((ROOT / "verification.lock.json").read_text())["plan"]
+    assert plan["seeds"] == list(range(1, 21)) and plan["required_passes"] == 18
 
 
 def test_preconditions_give_unsupported_before_trials():
@@ -160,27 +152,6 @@ def test_preconditions_give_unsupported_before_trials():
     assert pre["configuration_offered"] is False  # Unitree publishes no Go1 policy
     with pytest.raises(Unsupported):
         configuration("stock")
-
-
-def test_evaluation_from_a_recorded_trajectory():
-    p = sc.parameters("playground")
-    ok = [[t * 0.02, -2.5 + 0.01 * t, 0.0, 0.28, 0.4, 0.4] for t in range(560)]
-    ev = sc.evaluate(ok, p)
-    assert ev["outcome"] == "PASS" and ev["metrics"]["reached_exit"]
-    wide = [s[:2] + [0.65 if s[0] > 3 else 0.0] + s[3:] for s in ok]
-    assert sc.evaluate(wide, p)["first_failing_metric"] == "max_abs_lateral"
-    assert sc.evaluate(ok[:100], p)["first_failing_metric"] == "reached_exit"
-    fell = ok[:50] + [[1.02, -2.0, 0.0, 0.1, 0.4, 0.4]]
-    assert sc.evaluate(fell, p)["first_failing_metric"] == "min_base_height"
-    touch = [s[:4] + [0.0 if 1 < s[0] < 2 else 0.4, 0.4] for s in ok]
-    ev = sc.evaluate(touch, p)
-    assert ev["metrics"]["wall_contacts"] == 1 and ev["first_failing_metric"] == "wall_contacts"
-
-
-def test_grade_rule():
-    assert sc.grade(["PASS"] * 18 + ["FAIL"] * 2) == "PASS"
-    assert sc.grade(["PASS"] * 17 + ["FAIL"] * 3) == "FAIL"
-    assert sc.grade(["PASS"] * 17 + ["ERROR"] + ["FAIL"] * 2) == "INSUFFICIENT_EVIDENCE"
 
 
 def test_fetch_rejects_a_download_with_the_wrong_checksum(tmp_path):
@@ -198,12 +169,6 @@ def test_fetch_rejects_a_download_with_the_wrong_checksum(tmp_path):
     with pytest.raises(ChecksumError, match="f.txt"):
         fetch(tmp_path, opener=lambda url: io.BytesIO(b"tampered"))
     assert not (tmp_path / "d" / "f.txt").exists()
-
-
-def test_wilson_interval():
-    assert wilson(20, 20)[0] == pytest.approx(0.8389, abs=1e-4)
-    lo, hi = wilson(10, 20)
-    assert (round(lo, 4), round(hi, 4)) == (0.2993, 0.7007)
 
 
 def test_scene_keeps_playground_solver_and_collisions():
@@ -235,28 +200,6 @@ def test_spawn_comes_from_the_world_place():
     pos, yaw = place_pose(scene.model, "spawn-entrance")
     np.testing.assert_allclose(pos, world["spawn-entrance"]["position"])
     assert yaw == pytest.approx(np.radians(world["spawn-entrance"]["yaw_deg"]))
-
-
-def test_clearance_sees_the_walls():
-    scene = build()
-    m, d = scene.model, mujoco.MjData(scene.model)
-    c = controller("playground", scene)
-    zero = {k: 0.0 for k in runner_settings()["initial_noise"]}
-    initial_state(m, d, c, 1, zero, "spawn-entrance")
-    cl = Clearance(m, scene.walls)
-    gaps, real = cl.gaps(d), cl.distances(d)
-    assert 0.5 < gaps["wall-left"] < 0.75 and 0.5 < gaps["wall-right"] < 0.75
-    for w in scene.walls:  # the box gap is conservative: never larger than the real gap
-        assert gaps[w] <= real[w] + 1e-9
-    d.qpos[1] = 0.70
-    mujoco.mj_forward(m, d)
-    assert cl.gaps(d)["wall-left"] <= 0.0 and cl.distances(d)["wall-left"] <= 0.0
-
-
-def test_runner_is_the_pinned_commit():
-    from lpl_go1.scenario import runner_source
-
-    assert runner_source() == ("3de1a917788629a8e60f19a7b6d629edb25e17de", False)
 
 
 def test_initial_state_holds_home_until_the_first_tick():

@@ -21,17 +21,23 @@ tasks:
       - uv run ruff format --check .
       - 'uv run python -c "from lpl_go1.profiles import robot, configuration; [configuration(c[\"name\"]) for c in robot()[\"configurations\"]]; print(\"profiles valid\")"'
   test:
-    desc: Schemas, pins, obs/action layout vs upstream, reference tick match, scenario, scene
+    desc: Schemas, pins, gains vs upstream, scenario parameters, lock, repin, scene, PD
     cmds: [uv run pytest tests --junitxml=artifacts/tests.xml]
   reference:
     desc: Tick-by-tick match against Playground's play_go1_joystick.py loop (500 ticks)
     cmds: [uv run python -m lpl_go1.playground_reference]
-  walk:
-    desc: "walk-hallway@0.1.0, seeds 1-20: task walk [CONFIGURATION=playground]"
-    cmds: ['uv run python -m lpl_go1.walk walk --configuration {{.CONFIGURATION}}']
+  evidence:
+    desc: "walk-hallway sim evidence for one configuration, no grading: task evidence CONFIGURATION=<name>"
+    cmds: ['uv run python -m lpl_go1.evidence {{.CONFIGURATION}} artifacts/evidence/{{.CONFIGURATION}} {{.CLI_ARGS}}']
   stand:
     desc: "Zero-command standing check: task stand [CONFIGURATION=playground]"
     cmds: ['uv run python -m lpl_go1.walk stand --configuration {{.CONFIGURATION}}']
+  repin:
+    desc: "Fill PENDING_RELEASE refs from real tags: task repin -- runner=v1.4.0 verifier=vX.Y.Z reporter=vX.Y.Z"
+    cmds: ['python3 tools/repin.py {{.CLI_ARGS}}']
+  repin:check:
+    desc: Fail while verification.lock.json has PENDING_RELEASE refs or the runner is not on its locked tag
+    cmds: [python3 tools/repin.py --check]
   profile:measure:
     desc: Measure robot width, length and mass from the pinned model (robot.json dimensions)
     cmds: [uv run python -m lpl_go1.measure]
