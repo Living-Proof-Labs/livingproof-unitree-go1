@@ -23,7 +23,7 @@ Living Proof Labs does not train or tune controllers. A robot is validated only 
 
 `task reference` replays that upstream loop verbatim and compares every policy tick with our runner. The test suite keeps a 100-tick bit-exact regression.
 
-**Runner.** The runner is livingproof-sim-mujoco `audit/g1-playground-loop-fix` (3de1a91), which is feat/onnx-policy-runner (eb2b0dc) plus the policy-loop fix. With that fix the runner reads observations from the current state (mj_step1, act, mj_step2) and has a configurable first tick. eb2b0dc diverges from the reference at the first tick.
+**Runner.** livingproof-sim-mujoco feat/onnx-policy-runner at 3de1a91, a git dependency pinned by commit. Its policy loop observes the current state (mj_step1, act, mj_step2) and has a configurable first tick.
 
 **Scene.** The scene is Playground's `scene_mjx_feetonly_flat_terrain.xml`, with its solver and feet-only collisions unchanged, plus the pinned hallway world. The walls are visual-only. Wall contact is gated on a conservative world-AABB gap, and the real-geometry distance (`mj_geomDistance`) is recorded as a diagnostic.
 

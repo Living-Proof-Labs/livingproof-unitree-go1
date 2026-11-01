@@ -24,10 +24,8 @@ build-backend = "hatchling.build"
 packages = ["src/lpl_go1"]
 
 [tool.uv.sources]
-# The runner is livingproof-sim-mujoco audit/g1-playground-loop-fix (3de1a91 = eb2b0dc + the
-# policy-loop fix: current-state observation, configurable first tick); not pushed or
-# released; replace with a tagged git or wheel URL once it is.
-livingproof-sim-mujoco = { path = "../livingproof-sim-mujoco-loopfix", editable = true }
+# The runner: livingproof-sim-mujoco feat/onnx-policy-runner, pinned by commit.
+livingproof-sim-mujoco = { git = "https://github.com/Living-Proof-Labs/livingproof-sim-mujoco.git", rev = "3de1a917788629a8e60f19a7b6d629edb25e17de" }
 
 [tool.pytest.ini_options]
 addopts = "-ra"

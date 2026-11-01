@@ -251,3 +251,9 @@ def test_clearance_sees_the_walls():
     d.qpos[1] = 0.70
     mujoco.mj_forward(m, d)
     assert cl.gaps(d)["wall-left"] <= 0.0 and cl.distances(d)["wall-left"] <= 0.0
+
+
+def test_runner_is_the_pinned_commit():
+    from lpl_go1.scenario import runner_source
+
+    assert runner_source() == ("3de1a917788629a8e60f19a7b6d629edb25e17de", False)
