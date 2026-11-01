@@ -257,3 +257,12 @@ def test_runner_is_the_pinned_commit():
     from lpl_go1.scenario import runner_source
 
     assert runner_source() == ("3de1a917788629a8e60f19a7b6d629edb25e17de", False)
+
+
+def test_initial_state_holds_home_until_the_first_tick():
+    """mj_resetDataKeyframe(home) in play_go1_joystick.py also loads the keyframe ctrl."""
+    scene = build()
+    m, d = scene.model, mujoco.MjData(scene.model)
+    c = controller("playground", scene)
+    initial_state(m, d, c, 3, runner_settings()["initial_noise"], "spawn-entrance")
+    np.testing.assert_array_equal(d.ctrl, m.key_ctrl[m.key("home").id])

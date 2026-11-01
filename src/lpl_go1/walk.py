@@ -74,7 +74,9 @@ def initial_state(model, data, ctrl, seed: int, noise: dict, spawn: str) -> None
     data.qpos[qadr] += dq
     data.qvel[vadr] = dv
     data.qvel[0:6] = dbase
-    mujoco.mj_forward(model, data)
+    for name, q in zip(ctrl.spec.actuators, ctrl.spec.default_pose):
+        data.ctrl[model.actuator(name).id] = q  # hold home until the first tick, as the
+    mujoco.mj_forward(model, data)  # reference's mj_resetDataKeyframe(home) ctrl does
 
 
 def simulate(
