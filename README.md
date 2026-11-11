@@ -28,7 +28,7 @@ Living Proof Labs does not train or tune controllers. A robot is validated only 
 
 `task reference` replays that upstream loop verbatim and compares every policy tick with our runner. The test suite keeps a 100-tick bit-exact regression.
 
-**Runner.** livingproof-sim-mujoco v2.0.0, a git dependency pinned in `verification.lock.json` and `pyproject.toml`. `Go1.initial_state(model, data, ctrl, spawn, *, start_offset=None)` places the exact nominal pose. There is no seed and no noise. Its policy loop observes the current state (mj_step1, act, mj_step2) and has a configurable first tick.
+**Runner.** livingproof-sim-mujoco v2.0.1 (`5f6b9d10962eb6108dc55b079806b7a3cf794de7`), a git dependency pinned in `verification.lock.json` and `pyproject.toml`. `Go1.initial_state(model, data, ctrl, spawn, *, start_offset=None)` places the exact nominal pose. There is no seed and no noise. Its policy loop observes the current state (mj_step1, act, mj_step2) and has a configurable first tick.
 
 **Scene.** The scene is Playground's `scene_mjx_feetonly_flat_terrain.xml`, with its solver and feet-only collisions unchanged, plus the pinned hallway world. The walls are visual-only. Wall contacts are measured by the runner's `observations.observe` on real geometry and assessed by the verifier.
 
@@ -42,22 +42,24 @@ task reference      # tick-by-tick match against play_go1_joystick.py (500 ticks
 uv run python -m livingproof_sim_mujoco.evidence lpl_go1.adapter:ROBOT playground artifacts/evidence/playground   # sim evidence, trials.count from the lock (CI's command)
 task stand          # zero-command standing check
 task repin:check    # fails while any release ref is PENDING_RELEASE
-task repin -- runner=vX.Y.Z verifier=vX.Y.Z reporter=vX.Y.Z   # e.g. runner=v2.0.0, the current pin
+task repin -- runner=vX.Y.Z verifier=vX.Y.Z reporter=vX.Y.Z   # e.g. runner=v2.0.1, the current pin
 ```
 
 **Evidence only.** `python -m livingproof_sim_mujoco.evidence lpl_go1.adapter:ROBOT <configuration> <out>` runs `trials.count` identical trials through the runner's `observations.observe` and writes one observation per trial (`trials/trial-NN.json`: base trace, maximum lateral offset, minimum base height, exit time and real-geometry wall contacts). It also writes a `livingproof-hallway-evidence/2.0.0` manifest that echoes the lock and records the preconditions, and a `livingproof-run-manifest/0.1` before the first trial. No thresholds are applied here. Exit 4 means the identical trials disagreed (a test-system reproducibility finding, not a robot grade).
 
 `python -m lpl_go1.evidence` is the same loop. It refuses while the lock has `PENDING_RELEASE` refs; for a local run before the releases exist, pass `--allow-pending` (the manifest lists what was pending).
 
-Every release ref in `verification.lock.json` is currently pinned (specs v2.0.2, runner v2.0.0, verifier v1.16.0, reporter v3.0.4). Evidence goes to `artifacts/evidence/<configuration>/` (`manifest.json`, `run-manifest.json`, `trials/trial-NN.json`). Artifacts are never committed.
+Every release ref in `verification.lock.json` is currently pinned (specs v2.0.2, runner v2.0.1, verifier v1.16.1, reporter v3.0.4). Evidence goes to `artifacts/evidence/<configuration>/` (`manifest.json`, `run-manifest.json`, `trials/trial-NN.json`). Artifacts are never committed.
 
 **Assessment:** the capability verifier's hallway evaluators (exit reached, lateral limit, wall contact, fall) assess each trial with structured observed/limit/time failures. **Grade:** the capability report applies `all-required-v1` per trial and aggregates k of N with a Wilson 95% interval. For evidence 2.0.0, N is `trials.count` and every trial must pass.
 
-The next runner pin, sim-mujoco v2.0.1, is not released yet. The bump is `task repin -- runner=v2.0.1`, which rewrites these lines and then runs `uv lock`:
+`task repin -- runner=vX.Y.Z` rewrites the runner pin and then runs `uv lock`:
 
-- `pyproject.toml` `[tool.uv.sources]` `livingproof-sim-mujoco` `tag = "v2.0.0"`
-- `verification.lock.json` `releases.runner.tag` (`"v2.0.0"`) and `releases.runner.commit` (`"3221901af9836fae31266b2719429ab4000d8399"`)
+- `pyproject.toml` `[tool.uv.sources]` `livingproof-sim-mujoco` `tag` (currently `"v2.0.1"`)
+- `verification.lock.json` `releases.runner.tag` (currently `"v2.0.1"`) and `releases.runner.commit` (currently `"5f6b9d10962eb6108dc55b079806b7a3cf794de7"`)
 - `uv.lock` (regenerated; `task repin` runs `uv lock` when the runner pin changes)
+
+The verifier pin is `releases.verifier` (currently v1.16.1, commit `67bb6bbc330645f9fee66b9ab16f6c055cd313f8`, hallway image `ghcr.io/living-proof-labs/capability-verifier-hallway:1.16.1` digest `sha256:b57bf7dde92d930926b1f75b23bddf6fbc310e5913a5f0db9aa501bccaf62e4d`) and the `uses:` commit in `.github/workflows/verify.yml`, which is that same commit. The reporter pin is left at v3.0.4.
 
 ## Verification workflow
 
