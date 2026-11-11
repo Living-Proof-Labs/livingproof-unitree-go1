@@ -49,7 +49,7 @@ task repin -- runner=vX.Y.Z verifier=vX.Y.Z reporter=vX.Y.Z   # e.g. runner=v2.0
 
 `python -m lpl_go1.evidence` is the same loop. It refuses while the lock has `PENDING_RELEASE` refs; for a local run before the releases exist, pass `--allow-pending` (the manifest lists what was pending).
 
-Every release ref in `verification.lock.json` is currently pinned (specs v2.0.2, runner v2.0.1, verifier v1.16.1, reporter v3.0.4). Evidence goes to `artifacts/evidence/<configuration>/` (`manifest.json`, `run-manifest.json`, `trials/trial-NN.json`). Artifacts are never committed.
+Every release ref in `verification.lock.json` is currently pinned (specs v2.0.2, runner v2.0.1, verifier v1.16.1, reporter v3.3.0). Evidence goes to `artifacts/evidence/<configuration>/` (`manifest.json`, `run-manifest.json`, `trials/trial-NN.json`). Artifacts are never committed.
 
 **Assessment:** the capability verifier's hallway evaluators (exit reached, lateral limit, wall contact, fall) assess each trial with structured observed/limit/time failures. **Grade:** the capability report applies `all-required-v1` per trial and aggregates k of N with a Wilson 95% interval. For evidence 2.0.0, N is `trials.count` and every trial must pass.
 
@@ -59,7 +59,7 @@ Every release ref in `verification.lock.json` is currently pinned (specs v2.0.2,
 - `verification.lock.json` `releases.runner.tag` (currently `"v2.0.1"`) and `releases.runner.commit` (currently `"5f6b9d10962eb6108dc55b079806b7a3cf794de7"`)
 - `uv.lock` (regenerated; `task repin` runs `uv lock` when the runner pin changes)
 
-The verifier pin is `releases.verifier` (currently v1.16.1, commit `67bb6bbc330645f9fee66b9ab16f6c055cd313f8`, hallway image `ghcr.io/living-proof-labs/capability-verifier-hallway:1.16.1` digest `sha256:b57bf7dde92d930926b1f75b23bddf6fbc310e5913a5f0db9aa501bccaf62e4d`) and the `uses:` commit in `.github/workflows/verify.yml`, which is that same commit. The reporter pin is left at v3.0.4.
+The verifier pin is `releases.verifier` (currently v1.16.1, commit `67bb6bbc330645f9fee66b9ab16f6c055cd313f8`, hallway image `ghcr.io/living-proof-labs/capability-verifier-hallway:1.16.1` digest `sha256:b57bf7dde92d930926b1f75b23bddf6fbc310e5913a5f0db9aa501bccaf62e4d`) and the `uses:` commit in `.github/workflows/verify.yml`, which is that same commit. The reporter pin is `releases.reporter` (currently v3.3.0, commit `927d14a38234a9a469423256012226add8844bc3`, image `ghcr.io/living-proof-labs/livingproof-capability-report:3.3.0` digest `sha256:db6086415d9672fcee078432a649e70d93c5d37b0c51ce51bcca74ff2b56c4bd`).
 
 ## Verification workflow
 
