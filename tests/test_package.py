@@ -32,10 +32,10 @@ SIM2SIM = "mujoco_playground/experimental/sim2sim/play_go1_joystick.py"
 JOYSTICK = "mujoco_playground/_src/locomotion/go1/joystick.py"
 
 
-def test_profiles_match_the_pinned_v1_5_0_schemas():
+def test_profiles_match_the_pinned_v2_0_2_schemas():
     pins = json.loads((ROOT / "pins.json").read_text())["groups"]
-    assert pins["specs"]["tag"] == "v1.5.0"
-    assert pins["specs"]["commit"].startswith("1df6eaa")
+    assert pins["specs"]["tag"] == "v2.0.2"
+    assert pins["specs"]["commit"].startswith("16524cb")
     rob = robot()  # validates
     assert rob["id"] == "unitree-go1" and rob["class"] == "quadruped"
     assert [c["name"] for c in rob["configurations"]] == CONFIGS
@@ -144,17 +144,20 @@ def test_scenario_parameters_follow_the_pinned_acceptance_table():
     for row in (
         "| `command_speed` | 0.5 m/s",
         "Route length 5.5 m",
-        "| `required_passes` | 18",
-        "20, seeds 1 to 20",
+        "| `trials` | 1 |",
+        "exact nominal pose at `spawn-entrance`",
         "0.10 m quadruped",
     ):
         assert row in text, row
+    assert "required_passes" not in text and "seeds" not in text
     p = sc.parameters("playground")
     assert (p["time_limit"], p["exit_x"], p["wall_clearance"]) == (27.0, 3.0, 0.10)
     assert p["fall_height"] == 0.18
     assert p["lateral_limit"] == pytest.approx(0.75 - robot()["dimensions"]["width"]["value"] / 2)
     plan = json.loads((ROOT / "verification.lock.json").read_text())["plan"]
-    assert plan["seeds"] == list(range(1, 21)) and plan["required_passes"] == 18
+    # The specification default is 1. Published Go1 reports use 3 identical trials.
+    assert plan == {"trials": {"count": 3}, "command_speed": 0.5}
+    assert "seeds" not in plan and "required_passes" not in plan
 
 
 def test_preconditions_give_unsupported_before_trials():
@@ -214,10 +217,32 @@ def test_spawn_comes_from_the_world_place():
     assert yaw == pytest.approx(np.radians(world["spawn-entrance"]["yaw_deg"]))
 
 
+def test_nominal_pose_is_exact_and_start_offset_is_one_declared_change():
+    scene = build()
+    m = scene.model
+    for name in CONFIGS:
+        c = controller(name, scene)
+        d = mujoco.MjData(m)
+        ROBOT.initial_state(m, d, c, "spawn-entrance")
+        nominal = d.qpos.copy()
+        np.testing.assert_allclose(d.qvel, 0.0)
+        again = mujoco.MjData(m)
+        initial_state(m, again, c, "spawn-entrance")
+        np.testing.assert_array_equal(again.qpos, nominal)
+        shifted = mujoco.MjData(m)
+        ROBOT.initial_state(
+            m, shifted, c, "spawn-entrance", start_offset={"base_xy_m": [0.0, 0.05]}
+        )
+        np.testing.assert_allclose(shifted.qpos[0], nominal[0])
+        np.testing.assert_allclose(shifted.qpos[1], nominal[1] + 0.05)
+        np.testing.assert_allclose(shifted.qpos[2:], nominal[2:])
+        np.testing.assert_allclose(shifted.qvel, 0.0)
+
+
 def test_initial_state_holds_home_until_the_first_tick():
     """mj_resetDataKeyframe(home) in play_go1_joystick.py also loads the keyframe ctrl."""
     scene = build()
     m, d = scene.model, mujoco.MjData(scene.model)
     c = controller("playground", scene)
-    initial_state(m, d, c, 3, ROBOT.runner_settings()["initial_noise"], "spawn-entrance")
+    initial_state(m, d, c, "spawn-entrance")
     np.testing.assert_array_equal(d.ctrl, m.key_ctrl[m.key("home").id])

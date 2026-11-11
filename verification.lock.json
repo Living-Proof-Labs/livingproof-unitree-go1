@@ -5,20 +5,20 @@
   "releases": {
     "specs": {
       "repository": "Living-Proof-Labs/robot-capability-specs",
-      "tag": "v1.6.1",
-      "commit": "0bdf1db3f975b044692c0b8f1ec37737ad8b889f"
+      "tag": "v2.0.2",
+      "commit": "16524cbfeef18ff0454ebf125668b010d38a3993"
     },
     "runner": {
       "repository": "Living-Proof-Labs/livingproof-sim-mujoco",
-      "tag": "v1.8.3",
-      "commit": "2db491ed0ddee66eafcf69e4cefe5c7605c82f91"
+      "tag": "v2.0.0",
+      "commit": "3221901af9836fae31266b2719429ab4000d8399"
     },
     "verifier": {
       "repository": "Living-Proof-Labs/capability-verifier",
-      "tag": "v1.15.2",
-      "commit": "3dd9cc7498fa7653d3cbead36e4775bec43a84c3",
+      "tag": "v1.16.0",
+      "commit": "7943e0ea07c9f2221d4cd843366dec5572c6bf6f",
       "image": "ghcr.io/living-proof-labs/capability-verifier-hallway",
-      "digest": "sha256:ec76c95718593e446625bdbd257939a82623ec0941c3935bb0459bd2b859103e"
+      "digest": "sha256:a37656c4df4e08286dd179c0934d6f3bd44d7a9fb17876f10187df50f034b0ae"
     },
     "reporter": {
       "repository": "Living-Proof-Labs/livingproof-capability-report",
@@ -40,13 +40,11 @@
       "name": "playground",
       "version": "1.0.0",
       "path": "configurations/playground.json",
-      "sha256": "b827aed41d822333e3359e63af3d5202f17e324f7b90636976ad02eb87016235"
+      "sha256": "07bcbab38570ddb1c76c8508916298f2dc633be1543a78af7971bec338d6f930"
     }
   ],
   "plan": {
-    "trials": 20,
-    "seeds": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
-    "command_speed": 0.5,
-    "required_passes": 18
+    "trials": {"count": 3},
+    "command_speed": 0.5
   }
 }

@@ -1,5 +1,5 @@
 {
-  "$comment": "Robot profile (robot-capability-specs v1.5.0, specs/robots). model_source is the Playground Go1 feet-only MJCF; its meshes are mujoco_menagerie unitree_go1 @ 1b86ece (BSD-3-Clause, (c) Unitree Robotics), pinned in pins.json with every other upstream file.",
+  "$comment": "Robot profile (robot-capability-specs v2.0.2, specs/robots). model_source is the Playground Go1 feet-only MJCF; its meshes are mujoco_menagerie unitree_go1 @ 1b86ece (BSD-3-Clause, (c) Unitree Robotics), pinned in pins.json with every other upstream file.",
   "format": "livingproof-robot-profile/0.1",
   "id": "unitree-go1",
   "manufacturer": "Unitree Robotics",
