@@ -25,9 +25,9 @@ packages = ["src/lpl_go1"]
 
 [tool.uv.sources]
 # The runner, pinned to the release tag in verification.lock.json releases.runner
-# (v2.0.1, 5f6b9d10962eb6108dc55b079806b7a3cf794de7). `task repin -- runner=vX.Y.Z`
+# (v2.0.3, 292589ad15582c26cff2bffcc851e3abaf4ea708). `task repin -- runner=vX.Y.Z`
 # rewrites this tag, the lock's releases.runner tag and commit, then runs `uv lock`.
-livingproof-sim-mujoco = { git = "https://github.com/Living-Proof-Labs/livingproof-sim-mujoco.git", tag = "v2.0.1" }
+livingproof-sim-mujoco = { git = "https://github.com/Living-Proof-Labs/livingproof-sim-mujoco.git", tag = "v2.0.3" }
 
 [tool.pytest.ini_options]
 addopts = "-ra"
