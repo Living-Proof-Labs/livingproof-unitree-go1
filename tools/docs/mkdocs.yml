@@ -1,0 +1,35 @@
+# SPDX-License-Identifier: Apache-2.0
+site_name: Living Proof Labs · Unitree Go1
+site_url: https://docs.livingprooflabs.com/livingproof-unitree-go1/
+use_directory_urls: false
+strict: true
+theme:
+  name: zensical
+  font: false
+  palette:
+    - media: '(prefers-color-scheme: light)'
+      primary: custom
+      accent: custom
+      scheme: default
+      toggle: {icon: lucide/moon, name: Switch to dark mode}
+    - media: '(prefers-color-scheme: dark)'
+      primary: custom
+      accent: custom
+      scheme: slate
+      toggle: {icon: lucide/sun, name: Switch to light mode}
+markdown_extensions:
+  - tables
+  - toc: {permalink: true}
+  - pymdownx.superfences
+extra_css:
+  - assets/brand.css
+nav:
+  - Documentation home: https://docs.livingprooflabs.com/
+  - Start here: index.md
+  - Guides: guide.md
+  - Reference:
+      - Tasks: tasks.md
+  - Verification: verification.md
+  - Contribute: contribute.md
+  - Version and source: version.md
+  - License: license.md
