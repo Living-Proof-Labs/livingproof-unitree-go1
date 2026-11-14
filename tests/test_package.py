@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 import io
 import json
+import math
 import re
 
 import mujoco
@@ -8,11 +9,11 @@ import numpy as np
 import pytest
 
 from lpl_go1 import ROOT
-from lpl_go1 import scenario as sc
 from livingproof_sim_mujoco import pins
 from livingproof_sim_mujoco.pins import ChecksumError, sha256
+from livingproof_sim_mujoco.scene import actuator_table
 from lpl_go1.profiles import Unsupported, configuration, controller, robot, validate
-from lpl_go1.scene import SCENE, assets, build, place_pose
+from lpl_go1.scene import SCENE, Scene, assets, build
 from livingproof_sim_mujoco.walk import initial_state
 
 from lpl_go1.adapter import ROBOT
@@ -27,7 +28,6 @@ def fetch(root=ROOT, opener=None):
 
 
 CONFIGS = ["playground"]
-SCENARIO_README = "specs/scenarios/walk-hallway/README.md"
 SIM2SIM = "mujoco_playground/experimental/sim2sim/play_go1_joystick.py"
 JOYSTICK = "mujoco_playground/_src/locomotion/go1/joystick.py"
 
@@ -139,34 +139,26 @@ def test_runner_matches_the_playground_reference_tick_by_tick():
         assert r["bit_exact"], r["first_divergence"]
 
 
-def test_scenario_parameters_follow_the_pinned_acceptance_table():
-    text = local("specs", SCENARIO_README).read_text()
-    for row in (
-        "| `command_speed` | 0.5 m/s",
-        "Route length 5.5 m",
-        "| `trials` | 1 |",
-        "exact nominal pose at `spawn-entrance`",
-        "0.10 m quadruped",
-    ):
-        assert row in text, row
-    assert "required_passes" not in text and "seeds" not in text
-    p = sc.parameters("playground")
-    assert (p["time_limit"], p["exit_x"], p["wall_clearance"]) == (27.0, 3.0, 0.10)
-    assert p["fall_height"] == 0.18
-    assert p["lateral_limit"] == pytest.approx(0.75 - robot()["dimensions"]["width"]["value"] / 2)
-    plan = json.loads((ROOT / "verification.lock.json").read_text())["plan"]
-    # The specification default is 1. Published Go1 reports use 3 identical trials.
-    assert plan == {"trials": {"count": 3}, "command_speed": 0.5}
-    assert "seeds" not in plan and "required_passes" not in plan
+def test_configuration_states_the_published_controller_and_refuses_stock():
+    """The profile is the contract: published controller, offered names, and no stock policy."""
+    conf, digest = configuration("playground")
+    assert digest == sha256(ROOT / "configurations/playground.json")
+    assert conf["controller"]["interface"] == ["velocity_command"]
+    assert conf["controller"]["rate_hz"] == 50
+    loco = conf["locomotion"]
+    assert loco["max_speed"]["value"] == 1.5
+    assert loco["nominal_base_height"]["value"] == 0.278
+    assert loco["fall_base_height"]["value"] == 0.18
+    assert "seeds" not in conf and "required_passes" not in conf
+    with pytest.raises(Unsupported, match="configuration_offered"):
+        configuration("stock")  # Unitree publishes no Go1 policy
 
 
-def test_preconditions_give_unsupported_before_trials():
-    pre = sc.preconditions("playground")
-    assert all(c["met"] for c in pre), pre
-    pre = {c["name"]: c["met"] for c in sc.preconditions("stock")}
-    assert pre["configuration_offered"] is False  # Unitree publishes no Go1 policy
-    with pytest.raises(Unsupported):
-        configuration("stock")
+def test_runner_settings_are_robot_timing_only():
+    settings = ROBOT.runner_settings()
+    assert settings["sample_hz"] == 50
+    assert settings["stand_seconds"] == 10.0
+    assert "scenario" not in settings and "world" not in settings
 
 
 def test_fetch_rejects_a_download_with_the_wrong_checksum(tmp_path):
@@ -203,36 +195,53 @@ def test_scene_keeps_playground_solver_and_collisions():
         )
 
     assert collide(m) == collide(raw) and m.npair == raw.npair
-    assert scene.walls == ["wall-left", "wall-right"]
-    for w in scene.walls:
-        g = m.geom(w).id
-        assert m.geom_contype[g] == 0 and m.geom_conaffinity[g] == 0
+    assert scene.walls == []
+    assert m.ngeom == raw.ngeom and m.nsite == raw.nsite
 
 
-def test_spawn_comes_from_the_world_place():
+def _scene_with_place(name: str, xy: tuple[float, float], yaw_deg: float = 0.0) -> Scene:
+    """The Playground model plus one caller-supplied place. Not a pinned world."""
+    files = assets()
+    spec = mujoco.MjSpec.from_string(
+        local("playground", SCENE).read_text(),
+        include={k: v for k, v in files.items() if k.endswith(".xml")},
+        assets=files,
+    )
+    site = spec.worldbody.add_site()
+    site.name = "place:" + name
+    site.pos = [xy[0], xy[1], 0.0]
+    yaw = math.radians(yaw_deg)
+    site.quat = [math.cos(yaw / 2), 0.0, 0.0, math.sin(yaw / 2)]
+    model = spec.compile()
+    position_kp, ctrlrange = actuator_table(model)
+    return Scene(model, position_kp, ctrlrange, [])
+
+
+def test_scene_adds_no_world_places():
+    raw = mujoco.MjModel.from_xml_string(local("playground", SCENE).read_text(), assets())
     scene = build()
-    world = {p["name"]: p for p in scene.world["places"]}
-    pos, yaw = place_pose(scene.model, "spawn-entrance")
-    np.testing.assert_allclose(pos, world["spawn-entrance"]["position"])
-    assert yaw == pytest.approx(np.radians(world["spawn-entrance"]["yaw_deg"]))
+    assert scene.walls == []
+    assert not hasattr(scene, "world")
+    assert scene.model.nsite == raw.nsite
+    assert scene.model.ngeom == raw.ngeom
 
 
 def test_nominal_pose_is_exact_and_start_offset_is_one_declared_change():
-    scene = build()
+    """The caller names the place. The adapter puts the nominal pose there."""
+    scene = _scene_with_place("mark", (0.0, 0.0))
     m = scene.model
     for name in CONFIGS:
         c = controller(name, scene)
         d = mujoco.MjData(m)
-        ROBOT.initial_state(m, d, c, "spawn-entrance")
+        ROBOT.initial_state(m, d, c, "mark")
         nominal = d.qpos.copy()
+        np.testing.assert_allclose(d.qpos[0:2], [0.0, 0.0])
         np.testing.assert_allclose(d.qvel, 0.0)
         again = mujoco.MjData(m)
-        initial_state(m, again, c, "spawn-entrance")
+        initial_state(m, again, c, "mark")
         np.testing.assert_array_equal(again.qpos, nominal)
         shifted = mujoco.MjData(m)
-        ROBOT.initial_state(
-            m, shifted, c, "spawn-entrance", start_offset={"base_xy_m": [0.0, 0.05]}
-        )
+        ROBOT.initial_state(m, shifted, c, "mark", start_offset={"base_xy_m": [0.0, 0.05]})
         np.testing.assert_allclose(shifted.qpos[0], nominal[0])
         np.testing.assert_allclose(shifted.qpos[1], nominal[1] + 0.05)
         np.testing.assert_allclose(shifted.qpos[2:], nominal[2:])
@@ -241,8 +250,8 @@ def test_nominal_pose_is_exact_and_start_offset_is_one_declared_change():
 
 def test_initial_state_holds_home_until_the_first_tick():
     """mj_resetDataKeyframe(home) in play_go1_joystick.py also loads the keyframe ctrl."""
-    scene = build()
+    scene = _scene_with_place("mark", (0.0, 0.0))
     m, d = scene.model, mujoco.MjData(scene.model)
     c = controller("playground", scene)
-    initial_state(m, d, c, "spawn-entrance")
+    initial_state(m, d, c, "mark")
     np.testing.assert_array_equal(d.ctrl, m.key_ctrl[m.key("home").id])

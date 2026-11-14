@@ -1,7 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
-"""The Unitree Go1 adapter for livingproof-sim-mujoco's generic walk-hallway evidence loop.
-Only robot-specific code and data live here: the scene build, the published controllers,
-the nominal initial pose and the profiles."""
+"""The Unitree Go1 adapter for livingproof-sim-mujoco.
+
+Only robot-specific code and data live here: the Playground scene, the published
+controller, the nominal initial pose and the configuration profiles. The adapter does
+not choose a world or a scenario. The caller passes the place name to ``initial_state``.
+"""
 
 from __future__ import annotations
 
@@ -40,6 +43,7 @@ class Go1:
 
         Signature matches livingproof-sim-mujoco v2.0.3 ``Robot.initial_state``:
         ``(model, data, ctrl, spawn, start_offset=None)``. There is no seed and no noise.
+        ``spawn`` is a place the caller has already added to ``model``.
         """
         from livingproof_sim_mujoco.walk import initial_state
 
@@ -59,11 +63,6 @@ class Go1:
         from lpl_go1.profiles import configuration
 
         return configuration(name, self.root)[0]
-
-    def world(self) -> dict:
-        from lpl_go1.scene import load_world
-
-        return load_world(self.root)
 
     def environment(self, name: str) -> dict:
         return {}

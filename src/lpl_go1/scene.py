@@ -1,10 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
-"""The Playground Go1 scene plus the pinned hallway world.
+"""The Playground Go1 scene.
 
 The Playground MJCF is loaded unchanged: its solver options and its feet-only collision
-pairs are not touched. The world's walls are added as visual-only boxes (contype 0,
-conaffinity 0), so they create no contacts; wall clearance is checked geometrically
-(see ``clearance``). Named places become sites, read back from the compiled model.
+pairs are not touched. This package does not load a world. A caller that runs a scenario
+adds that world's geometry to the compiled model.
 """
 
 from __future__ import annotations
@@ -12,12 +11,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from livingproof_sim_mujoco import scene as generic
-from livingproof_sim_mujoco.scene import PLACE, WORLD, place_pose  # noqa: F401
+from livingproof_sim_mujoco.pins import load_pins, local
+from livingproof_sim_mujoco.scene import actuator_table
 import mujoco
 
 from lpl_go1 import ROOT
-from livingproof_sim_mujoco.pins import load_pins, local
 
 XMLS = "mujoco_playground/_src/locomotion/go1/xmls"
 SCENE = XMLS + "/scene_mjx_feetonly_flat_terrain.xml"
@@ -27,14 +25,9 @@ MESHES = "unitree_go1/assets"
 @dataclass
 class Scene:
     model: mujoco.MjModel
-    world: dict
     position_kp: dict[str, float]  # published <position> gains, by actuator name
     ctrlrange: dict[str, tuple[float, float]]
-    walls: list[str]
-
-
-def load_world(root: Path = ROOT) -> dict:
-    return generic.load_world(root)
+    walls: list[str]  # empty: the robot model has no world geometry
 
 
 def assets(root: Path = ROOT) -> dict[str, bytes]:
@@ -50,7 +43,7 @@ def assets(root: Path = ROOT) -> dict[str, bytes]:
 
 
 def build(actuation: str = "position", root: Path = ROOT) -> Scene:
-    """Compile the scene. Go1 runs on Playground's own <position> actuators only."""
+    """Compile the Playground scene. Go1 runs on Playground's own <position> actuators only."""
     if actuation != "position":
         raise ValueError(f"unknown actuation {actuation!r}; Go1 uses position actuators")
     load_pins(root)
@@ -60,8 +53,6 @@ def build(actuation: str = "position", root: Path = ROOT) -> Scene:
         include={k: v for k, v in files.items() if k.endswith(".xml")},
         assets=files,
     )
-    world = load_world(root)
-    walls = generic.add_world(spec, world)
     compiled = spec.compile()
-    position_kp, ctrlrange = generic.actuator_table(compiled)
-    return Scene(compiled, world, position_kp, ctrlrange, walls)
+    position_kp, ctrlrange = actuator_table(compiled)
+    return Scene(compiled, position_kp, ctrlrange, [])

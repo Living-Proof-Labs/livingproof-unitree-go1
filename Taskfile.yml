@@ -1,9 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
 version: '3'
-vars:
-  VERIFIER_COMMIT:
-    sh: python3 -c 'import json; print(json.load(open("verification.lock.json"))["releases"]["verifier"]["commit"])'
-  CONFIGURATION: '{{.CONFIGURATION | default "playground"}}'
 env:
   MUJOCO_GL: osmesa
   PYOPENGL_PLATFORM: osmesa
@@ -11,15 +7,6 @@ tasks:
   reference:
     desc: Tick-by-tick match against Playground's play_go1_joystick.py loop (500 ticks)
     cmds: [uv run python -m lpl_go1.playground_reference]
-  stand:
-    desc: "Zero-command standing check: task stand [CONFIGURATION=playground]"
-    cmds: ['uv run python -m livingproof_sim_mujoco.walk stand lpl_go1.adapter:ROBOT --configuration {{.CONFIGURATION}}']
-  repin:
-    desc: "Repin release refs to real tags (lock has runner v2.0.3, verifier v1.16.1, reporter v3.3.1): task repin -- runner=vX.Y.Z"
-    cmds: ['uvx --from git+https://github.com/Living-Proof-Labs/capability-verifier@{{.VERIFIER_COMMIT}} python -m capability_verifier.repin --root . {{.CLI_ARGS}}']
-  repin:check:
-    desc: Fail while verification.lock.json has PENDING_RELEASE refs or the runner is not on its locked tag
-    cmds: ['uvx --from git+https://github.com/Living-Proof-Labs/capability-verifier@{{.VERIFIER_COMMIT}} python -m capability_verifier.repin --root . --check']
   profile:measure:
     desc: Measure robot width, length and mass from the pinned model (robot.json dimensions)
     cmds: [uv run python -m lpl_go1.measure]
