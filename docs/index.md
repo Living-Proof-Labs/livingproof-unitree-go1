@@ -1,13 +1,13 @@
 # Unitree Go1
 
 This package connects a pinned Unitree Go1 model and MuJoCo Playground walking
-policy to Living Proof Labs simulation verification. Start with the
+policy to Living Proof Labs simulation. It is the adapter and the configuration
+profiles. It does not select a world or a scenario. Start with the
 [existing package guide](../README.md) for configuration, setup commands,
-expected evidence files, and limitations.
+and limitations.
 
-Only `playground` is offered. This is simulation evidence, not a hardware safety
-claim. The package records observations; the separately pinned verifier and
-reporter assess and grade them. A capability FAIL is not necessarily a CI failure.
+Only `playground` is offered. This is a robot package, not a hardware safety
+claim. A scenario run is selected in livingproof-verification.
 
 - [Guides: package setup and behavior](../README.md)
 - [Verification and manual preview](verification.md)

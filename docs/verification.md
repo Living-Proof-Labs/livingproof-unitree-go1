@@ -20,17 +20,20 @@ Network access is needed for dependency installation and the immutable brand fet
 
 ## Evidence and limits
 
-The [existing verification workflow](https://github.com/Living-Proof-Labs/livingproof-unitree-go1/actions/workflows/verify.yml)
-remains the source for simulation/evaluator results. This manual build does not
-run the robot, verify the README's simulation commands, or measure software coverage.
-No scenario pass count or package-release identity is inferred from documentation CI.
+The [Verify workflow](https://github.com/Living-Proof-Labs/livingproof-unitree-go1/actions/workflows/verify.yml)
+runs the adapter and configuration tests. It does not select a world or a
+scenario. Those runs are owned by
+[livingproof-verification](https://github.com/Living-Proof-Labs/livingproof-verification).
+This manual build does not run the robot, verify the README's simulation
+commands, or measure software coverage. No pass count or package-release
+identity is inferred from documentation CI.
 
-This first documentation baseline preserves all existing README content and
-anchors. Task reference is generated. Generated CLI/API references and embedded
-scenario/coverage reports are deferred explicitly: importing the runtime would
-require simulation dependencies and downloaded assets. Use the existing package
-guide, exact source, and verification artifacts for now. Full recipe adoption is
-not claimed. No historical rendered manuals are maintained; use source tags.
+This first documentation baseline preserves the package guide and its anchors.
+Task reference is generated. Generated CLI/API references and embedded coverage
+reports are deferred explicitly: importing the runtime would require simulation
+dependencies and downloaded assets. Use the existing package guide and the
+exact source for now. Full recipe adoption is not claimed. No historical
+rendered manuals are maintained; use source tags.
 
 ## Publication prerequisites
 

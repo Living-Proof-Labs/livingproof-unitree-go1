@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """Robot dimensions and mass measured from the pinned model (robot.json source: measured).
 
-Width and length are the extents of every mesh vertex in world coordinates at the start
-keyframe (home); mass is the sum of body masses.
+Width and length are the extents of every mesh vertex at the start keyframe (home);
+mass is the sum of body masses.
 """
 
 from __future__ import annotations

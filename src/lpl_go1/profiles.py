@@ -21,12 +21,11 @@ from lpl_go1.scene import Scene
 SCHEMAS = {
     "robot": "specs/robots/robot-profile.schema.json",
     "configuration": "specs/robots/configuration-profile.schema.json",
-    "manifest": "specs/robots/run-manifest.schema.json",
 }
 
 
 class Unsupported(Exception):
-    """A scenario precondition is not met; ``precondition`` names it."""
+    """The requested configuration is not offered; ``precondition`` names the check."""
 
     def __init__(self, precondition: str, detail: str):
         super().__init__(f"{precondition}: {detail}")
