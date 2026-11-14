@@ -27,7 +27,7 @@ packages = ["src/lpl_go1"]
 # Library the adapter is written against. A released tag, not a verification-run pin.
 # Integration pins (runner, verifier, reporter, world, scenario) live in
 # livingproof-verification. Tag v2.0.3 is commit 292589ad15582c26cff2bffcc851e3abaf4ea708.
-livingproof-sim-mujoco = { git = "https://github.com/Living-Proof-Labs/livingproof-sim-mujoco.git", tag = "v2.0.3" }
+livingproof-sim-mujoco = { git = "https://github.com/Living-Proof-Labs/livingproof-sim-mujoco.git", tag = "v2.1.1" }
 
 [tool.pytest.ini_options]
 addopts = "-ra"
