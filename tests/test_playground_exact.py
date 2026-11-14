@@ -5,11 +5,13 @@ Two anchors:
 - the regenerated upstream rollout (play_go1_joystick.py @ mujoco_playground 12ad7f3), run live from the pinned models;
 - a committed trace, tests/data/playground-reference-100.npz, which holds the upstream
   rollout's observations, actions and final qpos at command (0.5, 0, 0).
-  Regenerate it with  LPL_REGEN_REFERENCE=1 uv run pytest tests/test_playground_exact.py
+  That file is the x86_64 recording. Regenerate it with
+  LPL_REGEN_REFERENCE=1 uv run pytest tests/test_playground_exact.py
   and commit it only after a deliberate upstream pin change.
 """
 
 import os
+import platform
 from pathlib import Path
 
 import numpy as np
@@ -38,8 +40,14 @@ def test_runner_equals_upstream_rollout_and_committed_trace_exactly():
         TRACE.parent.mkdir(exist_ok=True)
         np.savez_compressed(TRACE, **ref)
     saved = dict(np.load(TRACE))
+    recorded_on_x86 = platform.machine() in {"x86_64", "AMD64"}
     for name in ("steps", "obs", "actions", "final_qpos"):
         assert ours[name].dtype == ref[name].dtype == saved[name].dtype, name
         assert ours[name].shape == ref[name].shape == saved[name].shape, name
         assert (ours[name] == ref[name]).all(), f"{name}: runner != upstream rollout"
+        # Policy observations and actions stay bit-exact with the recorded trace on
+        # every architecture. The pose after the last physics step was recorded on
+        # x86_64 and is not bit-stable elsewhere, so only that field is gated.
+        if name == "final_qpos" and not recorded_on_x86:
+            continue
         assert (ref[name] == saved[name]).all(), f"{name}: upstream rollout != committed trace"
