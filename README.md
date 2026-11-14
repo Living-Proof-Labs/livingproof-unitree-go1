@@ -19,7 +19,7 @@ Living Proof Labs does not train or tune controllers. A robot is validated only 
 | `runner.json` | Runner settings that are not part of a specification, all marked `chosen`: the sample rate and the stand length. Trials start at the exact nominal pose. There is no seed and no noise |
 | `src/lpl_go1/` | Scene (the Playground model only), profiles and the Playground reference loop. This package does not record a scenario |
 | `pyproject.toml` | Pins livingproof-sim-mujoco v2.0.3 (`292589ad15582c26cff2bffcc851e3abaf4ea708`) as the library the adapter imports. That tag is not a verification-run pin |
-| `.github/workflows/verify.yml` | Runs ruff and the adapter and configuration tests |
+| `.github/workflows/test.yml` | Runs ruff and the full test suite on pull requests and on main, on ubuntu-24.04 and ubuntu-24.04-arm |
 
 **One configuration.** Unitree publishes no Go1 locomotion policy. unitree_rl_gym (276801e) ships G1, H1 and H1-2 policies only; unitree_rl_lab and unitree_rl_mjlab ship G1 only; unitree_mujoco ships none; unitree_guide is a model-based ROS controller, not a policy artifact. So `stock` is not offered, and asking for it raises `Unsupported` (`configuration_offered`). The only configuration is `playground`.
 
@@ -46,7 +46,7 @@ task profile:measure   # width, length and mass from the pinned model
 
 ## Verification
 
-Scenario runs are not started from this repository. [livingproof-verification](https://github.com/Living-Proof-Labs/livingproof-verification) selects the robot tag, the configuration, the world and the scenario, and it holds the release pins for that run. `verify.yml` in this repository checks the adapter and the configuration profiles. A capability result is produced there, not here.
+Scenario runs are not started from this repository. [livingproof-verification](https://github.com/Living-Proof-Labs/livingproof-verification) selects the robot tag, the configuration, the world and the scenario, and it holds the release pins for that run. `test.yml` in this repository runs ruff and the adapter and configuration tests. A capability result is produced there, not here.
 
 ## Rules
 

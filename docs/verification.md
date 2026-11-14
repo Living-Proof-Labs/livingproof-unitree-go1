@@ -20,9 +20,9 @@ Network access is needed for dependency installation and the immutable brand fet
 
 ## Evidence and limits
 
-The [Verify workflow](https://github.com/Living-Proof-Labs/livingproof-unitree-go1/actions/workflows/verify.yml)
-runs the adapter and configuration tests. It does not select a world or a
-scenario. Those runs are owned by
+The [Test workflow](https://github.com/Living-Proof-Labs/livingproof-unitree-go1/actions/workflows/test.yml)
+runs ruff and the full test suite on pull requests and on main. It does not
+select a world or a scenario. Those runs are owned by
 [livingproof-verification](https://github.com/Living-Proof-Labs/livingproof-verification).
 This manual build does not run the robot, verify the README's simulation
 commands, or measure software coverage. No pass count or package-release

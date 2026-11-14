@@ -36,18 +36,36 @@ def test_there_is_no_verification_lock_or_evidence_entry_point():
     assert importlib.util.find_spec("lpl_go1.scenario") is None
 
 
-def test_verify_runs_adapter_checks_and_does_not_call_a_scenario_workflow():
-    workflow = (ROOT / ".github/workflows/verify.yml").read_text()
-    steps = "\n".join(line for line in workflow.splitlines() if not line.lstrip().startswith("#"))
-    assert "workflow_call" not in steps
-    assert "uses: Living-Proof-Labs/capability-verifier/" not in steps
-    assert "pull-requests:" not in steps
-    assert "pytest tests" in steps
-    assert "uv run --no-sync ruff check ." in steps
+def test_test_workflow_runs_on_pull_request():
+    """CI runs the suite on pull requests. The old scenario workflow is gone."""
+    path = ROOT / ".github/workflows/test.yml"
+    body = "\n".join(
+        line for line in path.read_text().splitlines() if not line.lstrip().startswith("#")
+    )
+    assert re.search(r"^on:\n(?:[ \t].*\n)*?[ \t]*pull_request:\n", body, re.M)
+    assert re.search(
+        r"^on:\n(?:[ \t].*\n)*?[ \t]*push:\n(?:[ \t].*\n)*?[ \t]*branches: \[main\]\n", body, re.M
+    )
+    assert "ubuntu-24.04" in body and "ubuntu-24.04-arm" in body
+    permissions = re.search(r"^permissions:\n((?:  .+\n)+)", body, re.M)
+    assert permissions is not None and permissions.group(1).strip() == "contents: read"
+    assert "uv run --no-sync ruff check ." in body
+    assert "uv run --no-sync ruff format --check ." in body
+    assert "uv run --no-sync pytest tests" in body
+    assert "upload" not in body and "secrets." not in body
+    docs = (ROOT / ".github/workflows/docs.yml").read_text()
+    for action in (
+        "actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+        "actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c",
+    ):
+        assert action in body and action in docs
+    assert "workflow_call" not in body
+    assert "uses: Living-Proof-Labs/capability-verifier/" not in body
+    assert not (ROOT / ".github/workflows/verify.yml").exists()
     assert sorted(p.name for p in (ROOT / ".github/workflows").iterdir()) == [
         "docs.yml",
         "release.yml",
-        "verify.yml",
+        "test.yml",
     ]
 
 
