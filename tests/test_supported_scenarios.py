@@ -9,7 +9,6 @@ it contains those ids.
 
 import hashlib
 import json
-import subprocess
 
 from jsonschema import Draft202012Validator
 
@@ -66,25 +65,24 @@ def _sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def _at_commit(commit: str, path: str) -> bytes:
-    found = subprocess.run(
-        ["git", "show", f"{commit}:{path}"],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-    )
-    return found.stdout
+# Published configuration versions. A byte change needs a new version and a new digest here.
+# playground 1.0.0 is the file at main b89bfa5.
+PUBLISHED_CONFIGURATION = {
+    ("configurations/playground.json", "1.0.0"): (
+        "07bcbab38570ddb1c76c8508916298f2dc633be1543a78af7971bec338d6f930"
+    ),
+}
 
 
 def test_a_configuration_version_keeps_one_digest():
-    """A profile version is one file. The same version as source.commit is the same bytes.
+    """A profile version is one file. playground 1.0.0 keeps the published digest.
 
     robot-capability-specs v2.3.0: any change to a configuration profile changes its
     sha256 and needs a new version. The manifest cites that version and sha256, and
-    its assets match pins.json.
+    its assets match pins.json. The check uses the recorded digest so a shallow
+    checkout can run it.
     """
     manifest = json.loads((ROOT / "manifest.json").read_text())
-    commit = manifest["source"]["commit"]
     problems = []
     profile_path = manifest["profile"]["path"]
     profile_bytes = (ROOT / profile_path).read_bytes()
@@ -94,19 +92,17 @@ def test_a_configuration_version_keeps_one_digest():
         path = item["path"]
         current = json.loads((ROOT / path).read_text())
         file_bytes = (ROOT / path).read_bytes()
+        digest = _sha256(file_bytes)
         if current["version"] != item["version"]:
             problems.append(
                 f"{path} version is {current['version']}, manifest says {item['version']}"
             )
-        if _sha256(file_bytes) != item["sha256"]:
+        if digest != item["sha256"]:
             problems.append(f"{path} sha256 differs from the manifest")
-        previous = json.loads(_at_commit(commit, path))
-        if current["version"] == previous["version"] and _sha256(file_bytes) != _sha256(
-            _at_commit(commit, path)
-        ):
+        published = PUBLISHED_CONFIGURATION.get((path, current["version"]))
+        if published is not None and digest != published:
             problems.append(
-                f"{path} version {current['version']} changed bytes since {commit[:7]} "
-                "without a new version"
+                f"{path} version {current['version']} changed bytes without a new version"
             )
     pins = json.loads((ROOT / "pins.json").read_text())["groups"]
     expected = []
