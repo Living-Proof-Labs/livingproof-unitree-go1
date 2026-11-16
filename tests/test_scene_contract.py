@@ -31,7 +31,7 @@ def test_initial_state_fails_loudly_when_the_place_is_not_on_the_model():
     scene = build()
     for name in ("playground",):
         c = controller(name, scene)
-        with pytest.raises(KeyError, match="'spawn-entrance' is not on the compiled model"):
+        with pytest.raises(KeyError, match="'spawn-entrance' is not a place in the composed world"):
             ROBOT.initial_state(scene.model, mujoco.MjData(scene.model), c, "spawn-entrance")
 
 
