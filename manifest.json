@@ -1,0 +1,200 @@
+{
+  "$comment": "Robot manifest (livingproof-robot-manifest/0.1). Profile and configuration digests are the unchanged bytes at source.commit (main b89bfa5caa5c14fd612868e8a1e19777a3e03a01). Assets follow pins.json in this revision; the specs group is robot-capability-specs v2.3.0 (57317e6).",
+  "format": "livingproof-robot-manifest/0.1",
+  "robot": "unitree-go1",
+  "source": {
+    "repository": "Living-Proof-Labs/livingproof-unitree-go1",
+    "commit": "b89bfa5caa5c14fd612868e8a1e19777a3e03a01"
+  },
+  "profile": {
+    "path": "robot.json",
+    "sha256": "6fb708ddda5e800eae14ef1a9af52c415f905b8512871ca5100eed54ce71eb14"
+  },
+  "adapter": {
+    "entry_point": "lpl_go1.adapter:ROBOT",
+    "package": "livingproof-unitree-go1"
+  },
+  "configurations": [
+    {
+      "name": "playground",
+      "version": "1.0.0",
+      "path": "configurations/playground.json",
+      "sha256": "07bcbab38570ddb1c76c8508916298f2dc633be1543a78af7971bec338d6f930",
+      "default": true
+    }
+  ],
+  "assets": [
+    {
+      "group": "playground",
+      "repository": "google-deepmind/mujoco_playground",
+      "commit": "12ad7f3842791ced39f27e5ac96d066bbe361653",
+      "path": "LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358
+    },
+    {
+      "group": "playground",
+      "repository": "google-deepmind/mujoco_playground",
+      "commit": "12ad7f3842791ced39f27e5ac96d066bbe361653",
+      "path": "mujoco_playground/_src/locomotion/go1/xmls/scene_mjx_feetonly_flat_terrain.xml",
+      "sha256": "f89261e90ff2e92b5fcaaecd94fa6d3850c9574c2fc698cd01bfc05140056ed0",
+      "bytes": 2191
+    },
+    {
+      "group": "playground",
+      "repository": "google-deepmind/mujoco_playground",
+      "commit": "12ad7f3842791ced39f27e5ac96d066bbe361653",
+      "path": "mujoco_playground/_src/locomotion/go1/xmls/go1_mjx_feetonly.xml",
+      "sha256": "c33da7ff33b33d305163b6b05fadde9430b8777ccf1db88fda2e58d9cfabf82a",
+      "bytes": 12366
+    },
+    {
+      "group": "playground",
+      "repository": "google-deepmind/mujoco_playground",
+      "commit": "12ad7f3842791ced39f27e5ac96d066bbe361653",
+      "path": "mujoco_playground/_src/locomotion/go1/xmls/sensor_feet.xml",
+      "sha256": "75c4e09936f4bbc529f4c538485e493283359df7d1bf6678390a830bef9b5e13",
+      "bytes": 441
+    },
+    {
+      "group": "playground",
+      "repository": "google-deepmind/mujoco_playground",
+      "commit": "12ad7f3842791ced39f27e5ac96d066bbe361653",
+      "path": "mujoco_playground/experimental/sim2sim/onnx/go1_policy.onnx",
+      "sha256": "386cde6a1eac679e2f2a313ade2b395d9f26905b151ee3b019c2c4163d49b6f2",
+      "bytes": 772916
+    },
+    {
+      "group": "playground",
+      "repository": "google-deepmind/mujoco_playground",
+      "commit": "12ad7f3842791ced39f27e5ac96d066bbe361653",
+      "path": "mujoco_playground/experimental/sim2sim/play_go1_joystick.py",
+      "sha256": "f422e041e9382d96a6b4d60f7a9065f2bc849599dadbd57939fd03677292abb9",
+      "bytes": 3653
+    },
+    {
+      "group": "playground",
+      "repository": "google-deepmind/mujoco_playground",
+      "commit": "12ad7f3842791ced39f27e5ac96d066bbe361653",
+      "path": "mujoco_playground/_src/locomotion/go1/joystick.py",
+      "sha256": "519680905e024304c1df4c209aebc80fcdb22a74487d9e775f0077cd8c6fe3ec",
+      "bytes": 21519
+    },
+    {
+      "group": "playground",
+      "repository": "google-deepmind/mujoco_playground",
+      "commit": "12ad7f3842791ced39f27e5ac96d066bbe361653",
+      "path": "mujoco_playground/_src/locomotion/go1/base.py",
+      "sha256": "4f9fafd8ddffebc27ec1c28dbf7ead042573d547e122f41e5f1693d4229d893f",
+      "bytes": 4080
+    },
+    {
+      "group": "playground",
+      "repository": "google-deepmind/mujoco_playground",
+      "commit": "12ad7f3842791ced39f27e5ac96d066bbe361653",
+      "path": "mujoco_playground/_src/locomotion/go1/go1_constants.py",
+      "sha256": "03a1b094311ee8cc85d61b3f2b2001c65072267d4439eb159f0977c3457c7109",
+      "bytes": 1700
+    },
+    {
+      "group": "menagerie",
+      "repository": "google-deepmind/mujoco_menagerie",
+      "commit": "1b86ece576591213e2b666ebf59508454200ca97",
+      "path": "unitree_go1/LICENSE",
+      "sha256": "2b794acf1e250f5545ae5a47d81e5685ea5488ce077d1087ed8be5f81e9ba5c0",
+      "bytes": 1559
+    },
+    {
+      "group": "menagerie",
+      "repository": "google-deepmind/mujoco_menagerie",
+      "commit": "1b86ece576591213e2b666ebf59508454200ca97",
+      "path": "unitree_go1/go1.xml",
+      "sha256": "d5a7466784c8e72fd174cc7fa5a92754a1a0a6d458a1dec79e7ca0abc9525c4a",
+      "bytes": 10875
+    },
+    {
+      "group": "menagerie",
+      "repository": "google-deepmind/mujoco_menagerie",
+      "commit": "1b86ece576591213e2b666ebf59508454200ca97",
+      "path": "unitree_go1/assets/calf.stl",
+      "sha256": "ad3685e132454fd64e4ca3e5089f0d812fb53958e95c14913a22e3193e9e9ed8",
+      "bytes": 1447984
+    },
+    {
+      "group": "menagerie",
+      "repository": "google-deepmind/mujoco_menagerie",
+      "commit": "1b86ece576591213e2b666ebf59508454200ca97",
+      "path": "unitree_go1/assets/hip.stl",
+      "sha256": "b6599b9dd2751ebd87449203223f5683a6c235268b76fcc443e00e0d974a06c0",
+      "bytes": 1505284
+    },
+    {
+      "group": "menagerie",
+      "repository": "google-deepmind/mujoco_menagerie",
+      "commit": "1b86ece576591213e2b666ebf59508454200ca97",
+      "path": "unitree_go1/assets/thigh.stl",
+      "sha256": "bbf7c0a441323088c59276dbec8a32e708a1c61f42d30a6f6775176366ea23f8",
+      "bytes": 793584
+    },
+    {
+      "group": "menagerie",
+      "repository": "google-deepmind/mujoco_menagerie",
+      "commit": "1b86ece576591213e2b666ebf59508454200ca97",
+      "path": "unitree_go1/assets/thigh_mirror.stl",
+      "sha256": "1a90b89de47a57cb12a2d703f6b008a6ace8a1890a381c27723296fd0d00b9d8",
+      "bytes": 950834
+    },
+    {
+      "group": "menagerie",
+      "repository": "google-deepmind/mujoco_menagerie",
+      "commit": "1b86ece576591213e2b666ebf59508454200ca97",
+      "path": "unitree_go1/assets/trunk.stl",
+      "sha256": "051a57995dc6f892fc9bc53cd94e9a894f3dc209fd646e94d55d764150013970",
+      "bytes": 5619284
+    },
+    {
+      "group": "specs",
+      "repository": "Living-Proof-Labs/robot-capability-specs",
+      "commit": "57317e617014a6df97bb7fba9d92a890af8d42e5",
+      "path": "specs/robots/robot-profile.schema.json",
+      "sha256": "90a02a6b9371cd81b6a5e07cdafeda02727f36c5e17ba9777a9a09807a5d5226",
+      "bytes": 3241
+    },
+    {
+      "group": "specs",
+      "repository": "Living-Proof-Labs/robot-capability-specs",
+      "commit": "57317e617014a6df97bb7fba9d92a890af8d42e5",
+      "path": "specs/robots/configuration-profile.schema.json",
+      "sha256": "3208a2ca0b852eb9e0654c5e56d95195f1f887428e70a06514f44f96aab81bf0",
+      "bytes": 2340
+    },
+    {
+      "group": "specs",
+      "repository": "Living-Proof-Labs/robot-capability-specs",
+      "commit": "57317e617014a6df97bb7fba9d92a890af8d42e5",
+      "path": "specs/robots/robot-manifest.schema.json",
+      "sha256": "563076811d78ce8f2326a4253e1e34093d66c6487c0d215903cae4887990d4c4",
+      "bytes": 5880
+    },
+    {
+      "group": "specs",
+      "repository": "Living-Proof-Labs/robot-capability-specs",
+      "commit": "57317e617014a6df97bb7fba9d92a890af8d42e5",
+      "path": "specs/robots/README.md",
+      "sha256": "261f18839c0d8b35daed027314716c24760d2819a9b87173bbcff81324e53077",
+      "bytes": 8984
+    },
+    {
+      "group": "specs",
+      "repository": "Living-Proof-Labs/robot-capability-specs",
+      "commit": "57317e617014a6df97bb7fba9d92a890af8d42e5",
+      "path": "LICENSES/CC-BY-4.0.txt",
+      "sha256": "d557539df68e771cc1eedcc91d13f70fca930e508d11eedcafa4b15db49e3744",
+      "bytes": 17023
+    }
+  ],
+  "features": {},
+  "scenarios": [
+    "walk-hallway"
+  ]
+}
