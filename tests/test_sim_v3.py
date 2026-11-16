@@ -68,7 +68,7 @@ def test_evidence_and_stand_commands_pass_lock():
 
 def test_the_robot_scene_does_not_add_a_world():
     scene = build()
-    assert scene.walls == []
+    assert not hasattr(scene, "walls")
     source = Path(ROOT / "src/lpl_go1/scene.py").read_text(encoding="utf-8")
     assert "add_world" not in source
     assert "compose.place" not in source

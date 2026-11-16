@@ -43,10 +43,16 @@ class Go1:
 
         Signature matches livingproof-sim-mujoco v2.0.3 ``Robot.initial_state``:
         ``(model, data, ctrl, spawn, start_offset=None)``. There is no seed and no noise.
-        ``spawn`` is a place the caller has already added to ``model``.
+        ``spawn`` is a place the caller has already added to ``model``. A missing place
+        raises ``KeyError`` with the same message as the G1 and T1 adapters.
         """
+        from livingproof_sim_mujoco.scene import PLACE
         from livingproof_sim_mujoco.walk import initial_state
 
+        try:
+            model.site(PLACE + spawn)
+        except KeyError:
+            raise KeyError(missing_place(spawn)) from None
         initial_state(model, data, ctrl, spawn, start_offset=start_offset)
 
     def runner_settings(self) -> dict:
@@ -66,6 +72,17 @@ class Go1:
 
     def environment(self, name: str) -> dict:
         return {}
+
+
+def missing_place(spawn: str) -> str:
+    """The error for a start place that is not on the compiled model."""
+    from livingproof_sim_mujoco.scene import PLACE
+
+    return (
+        f"start place {spawn!r} is not on the compiled model (no site {PLACE + spawn!r}). "
+        "Compose the world first, so its places are compiled in, then call "
+        "initial_state(model, data, ctrl, 'spawn-entrance')."
+    )
 
 
 ROBOT = Go1()
