@@ -11,5 +11,14 @@
     "pip-compile",
     "custom.regex",
     "pep621"
+  ],
+  "packageRules": [
+    {
+      "description": "numpy 2.5+ requires Python >=3.12; keep the python_version < '3.12' line on 2.4.x.",
+      "matchManagers": ["pep621"],
+      "matchPackageNames": ["numpy"],
+      "matchCurrentValue": "/^==2\\.4\\./",
+      "allowedVersions": "<2.5"
+    }
   ]
 }
