@@ -228,7 +228,7 @@ def test_scene_keeps_playground_solver_and_collisions():
         )
 
     assert collide(m) == collide(raw) and m.npair == raw.npair
-    assert scene.walls == []
+    assert not hasattr(scene, "walls")
     assert m.ngeom == raw.ngeom and m.nsite == raw.nsite
 
 
@@ -247,13 +247,13 @@ def _scene_with_place(name: str, xy: tuple[float, float], yaw_deg: float = 0.0) 
     site.quat = [math.cos(yaw / 2), 0.0, 0.0, math.sin(yaw / 2)]
     model = spec.compile()
     position_kp, ctrlrange = actuator_table(model)
-    return Scene(model, position_kp, ctrlrange, [])
+    return Scene(model, position_kp, ctrlrange)
 
 
 def test_scene_adds_no_world_places():
     raw = mujoco.MjModel.from_xml_string(local("playground", SCENE).read_text(), assets())
     scene = build()
-    assert scene.walls == []
+    assert not hasattr(scene, "walls")
     assert not hasattr(scene, "world")
     assert scene.model.nsite == raw.nsite
     assert scene.model.ngeom == raw.ngeom

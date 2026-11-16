@@ -27,7 +27,6 @@ class Scene:
     model: mujoco.MjModel
     position_kp: dict[str, float]  # published <position> gains, by actuator name
     ctrlrange: dict[str, tuple[float, float]]
-    walls: list[str]  # empty: the robot model has no world geometry
 
 
 def assets(root: Path = ROOT) -> dict[str, bytes]:
@@ -55,4 +54,4 @@ def build(actuation: str = "position", root: Path = ROOT) -> Scene:
     )
     compiled = spec.compile()
     position_kp, ctrlrange = actuator_table(compiled)
-    return Scene(compiled, position_kp, ctrlrange, [])
+    return Scene(compiled, position_kp, ctrlrange)
