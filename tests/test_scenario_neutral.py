@@ -18,12 +18,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 GUARD = Path(__file__)
 # The declaration test names the ids on purpose. The manifest may contain only
-# the declared id, which is removed before the name search.
+# the declared ids, which are removed before the name search.
 SKIP_NAME_SEARCH = {
     GUARD.resolve(),
     (ROOT / "tests/test_supported_scenarios.py").resolve(),
+    # Runs the declared scenarios end to end, so it names their worlds (#40, 11b).
+    (ROOT / "tests/test_route_drive.py").resolve(),
 }
-DECLARED_ID = {"manifest.json": "walk-hallway"}
+DECLARED_ID = {"manifest.json": ('"walk-hallway"', '"walk-corner"')}
 # Names of scenarios and worlds. The search is case-insensitive.
 NAMES = re.compile(r"hallway|walk-hallway|hallway-open|corner", re.IGNORECASE)
 SELECTING_KEYS = {"world", "worlds", "scenario"}
@@ -72,8 +74,8 @@ def test_scenario_and_world_names_stay_out_of_the_package():
             continue
         text = path.read_text(encoding="utf-8", errors="strict")
         declared = DECLARED_ID.get(relative)
-        if declared is not None:
-            text = text.replace(declared, "")
+        for scenario in declared or ():
+            text = text.replace(scenario, "")
         if NAMES.search(text):
             offenders.append(relative)
     assert offenders == []

@@ -2,8 +2,8 @@
 """The robot manifest declares the scenarios this adapter supports.
 
 robot-capability-specs v2.3.0 (57317e6) puts that list on
-livingproof-robot-manifest/0.1. This package declares walk-hallway and does not
-declare walk-corner. This file is excluded from the scenario-name search because
+livingproof-robot-manifest/0.1. This package declares walk-hallway and walk-corner,
+which the adapter drives itself (``drive``, robot-capability-specs#40 step 11b). This file is excluded from the scenario-name search because
 it contains those ids.
 """
 
@@ -19,8 +19,8 @@ SPEC_COMMIT = "57317e617014a6df97bb7fba9d92a890af8d42e5"
 SCHEMA = "specs/robots/robot-manifest.schema.json"
 
 
-def test_manifest_declares_exactly_walk_hallway():
-    """Exactly walk-hallway, no walk-corner, and the field validates against the spec."""
+def test_manifest_declares_walk_hallway_and_walk_corner():
+    """walk-hallway and walk-corner, and the field validates against the spec."""
     problems = []
     path = ROOT / "manifest.json"
     if not path.is_file():
@@ -30,10 +30,8 @@ def test_manifest_declares_exactly_walk_hallway():
         text = path.read_text()
         manifest = json.loads(text)
         scenarios = manifest.get("scenarios")
-        if scenarios != ["walk-hallway"]:
-            problems.append(f"scenarios is {scenarios!r}, expected ['walk-hallway']")
-        if "walk-corner" in text:
-            problems.append("walk-corner is declared")
+        if scenarios != ["walk-hallway", "walk-corner"]:
+            problems.append(f"scenarios is {scenarios!r}, expected ['walk-hallway', 'walk-corner']")
     spec = json.loads((ROOT / "pins.json").read_text())["groups"]["specs"]
     if spec.get("tag") != "v2.3.0" or spec.get("commit") != SPEC_COMMIT:
         problems.append(
@@ -56,7 +54,7 @@ def test_manifest_declares_exactly_walk_hallway():
                 from lpl_go1.profiles import manifest as load_manifest
 
                 loaded = load_manifest()
-                if loaded.get("scenarios") != ["walk-hallway"]:
+                if loaded.get("scenarios") != ["walk-hallway", "walk-corner"]:
                     problems.append(f"loader returned {loaded.get('scenarios')!r}")
     assert problems == []
 
