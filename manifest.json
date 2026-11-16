@@ -1,5 +1,5 @@
 {
-  "$comment": "Robot manifest (livingproof-robot-manifest/0.1). Profile and configuration hashes are the files in this revision. source.commit is main b89bfa5caa5c14fd612868e8a1e19777a3e03a01, the revision this declaration was written from. Assets follow pins.json; the specs group is robot-capability-specs v2.3.0 (57317e6).",
+  "$comment": "Robot manifest (livingproof-robot-manifest/0.1). Profile and configuration digests are the unchanged bytes at source.commit (main b89bfa5caa5c14fd612868e8a1e19777a3e03a01). Assets follow pins.json in this revision; the specs group is robot-capability-specs v2.3.0 (57317e6).",
   "format": "livingproof-robot-manifest/0.1",
   "robot": "unitree-go1",
   "source": {
@@ -8,7 +8,7 @@
   },
   "profile": {
     "path": "robot.json",
-    "sha256": "e16a67198641276f3b6af65d11baf02fdf001bf28650196a858be61bc1070ade"
+    "sha256": "6fb708ddda5e800eae14ef1a9af52c415f905b8512871ca5100eed54ce71eb14"
   },
   "adapter": {
     "entry_point": "lpl_go1.adapter:ROBOT",
@@ -19,7 +19,7 @@
       "name": "playground",
       "version": "1.0.0",
       "path": "configurations/playground.json",
-      "sha256": "85ced23b0cc89e676d109ada3ab80bf4415b66ec7fd772976eb282c2b8e45a73",
+      "sha256": "07bcbab38570ddb1c76c8508916298f2dc633be1543a78af7971bec338d6f930",
       "default": true
     }
   ],
