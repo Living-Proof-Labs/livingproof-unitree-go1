@@ -174,3 +174,47 @@ def test_recorded_interface_matches_the_pinned_shared_workflow():
         shared = response.read().decode()
     assert _workflow_call_keys(shared, "inputs") == SHARED_RELEASE_INPUTS
     assert _workflow_call_keys(shared, "outputs") == SHARED_RELEASE_OUTPUTS
+
+
+def test_this_repository_does_not_opt_in_to_docs_brand_updates():
+    """v9.4.0's docs-brand manager stays off until a consumer opts in.
+
+    Proposed by Vera in the guidelines v9.4.0 bump review. This repository
+    enables custom.regex and has a docs-brand.lock.json, so the new manager
+    would match, but the pinned preset disables that dep type by default.
+    A later consumer packageRule that sets enabled: true fails here.
+    """
+    config = json.loads((ROOT / "renovate.json").read_text())
+    assert "custom.regex" in config.get("enabledManagers", [])
+    assert (ROOT / "docs-brand.lock.json").is_file()
+    for rule in config.get("packageRules") or []:
+        dumped = json.dumps(rule)
+        if "docs-brand" in dumped or rule.get("matchDepTypes") == ["docs-brand"]:
+            assert rule.get("enabled") is False, rule
+
+
+@pytest.mark.skipif(not os.environ.get("LIVINGPROOF_NETWORK"), reason="set LIVINGPROOF_NETWORK=1")
+def test_pinned_preset_keeps_docs_brand_disabled_by_default():
+    # Proposed by Vera in the guidelines v9.4.0 bump review.
+    refs = pinned_versions()
+    assert refs, "expected a Renovate preset pin"
+    (ref,) = refs
+    url = f"https://raw.githubusercontent.com/{REPO}/{ref}/renovate-preset.json"
+    with urllib.request.urlopen(url, timeout=30) as response:
+        preset = json.loads(response.read().decode())
+    brand_rules = [
+        rule
+        for rule in preset.get("packageRules", [])
+        if "docs-brand" in json.dumps(rule) or rule.get("matchDepTypes") == ["docs-brand"]
+    ]
+    assert brand_rules, f"pinned {ref} preset has no docs-brand packageRule"
+    for rule in brand_rules:
+        assert rule.get("enabled") is False, rule
+        assert rule.get("automerge") is False
+    managers = [
+        manager
+        for manager in preset.get("customManagers", [])
+        if manager.get("depTypeTemplate") == "docs-brand"
+        or "docs-brand.lock.json" in json.dumps(manager)
+    ]
+    assert managers, f"pinned {ref} preset has no docs-brand.lock.json manager"
