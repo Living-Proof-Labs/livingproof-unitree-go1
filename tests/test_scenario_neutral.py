@@ -5,6 +5,10 @@ No recorded scenario evidence is stored here, so there is no legacy reader and
 the allowlist is empty. The playground reference trace is a controller rollout,
 not scenario evidence. This file is excluded from the name search because it
 contains the search terms.
+
+manifest.json may declare support with the id walk-hallway. That declaration is
+not a selection, and tests/test_supported_scenarios.py checks it. The name search
+skips that test because the test names the ids.
 """
 
 import json
@@ -13,6 +17,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 GUARD = Path(__file__)
+# The declaration test names the ids on purpose. The manifest may contain only
+# the declared id, which is removed before the name search.
+SKIP_NAME_SEARCH = {
+    GUARD.resolve(),
+    (ROOT / "tests/test_supported_scenarios.py").resolve(),
+}
+DECLARED_ID = {"manifest.json": "walk-hallway"}
 # Names of scenarios and worlds. The search is case-insensitive.
 NAMES = re.compile(r"hallway|walk-hallway|hallway-open|corner", re.IGNORECASE)
 SELECTING_KEYS = {"world", "worlds", "scenario"}
@@ -53,13 +64,16 @@ def test_scenario_and_world_names_stay_out_of_the_package():
     assert LEGACY_EVIDENCE == ()
     offenders = []
     for path in _tracked_files():
-        if path.resolve() == GUARD.resolve() or _legacy(path):
+        if path.resolve() in SKIP_NAME_SEARCH or _legacy(path):
             continue
         relative = path.relative_to(ROOT).as_posix()
         if NAMES.search(path.name):
             offenders.append(relative)
             continue
         text = path.read_text(encoding="utf-8", errors="strict")
+        declared = DECLARED_ID.get(relative)
+        if declared is not None:
+            text = text.replace(declared, "")
         if NAMES.search(text):
             offenders.append(relative)
     assert offenders == []
