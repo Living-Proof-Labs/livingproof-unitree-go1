@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 """The numpy pin keeps main's per-Python resolution.
 
-Main's lock (6292c1ff) resolves numpy 2.4.6 for Python < 3.12 and numpy 2.5.4
-for Python >= 3.12. A single ``numpy==2.4.6`` requirement collapses that fork
-and downgrades the Python 3.12 path, which is the interpreter CI runs.
+Main's lock resolves numpy 2.4.6 for Python < 3.12 and numpy 2.5.4 for
+Python >= 3.12. A single ``numpy==2.4.6`` requirement collapses that fork and
+downgrades the Python 3.12 path, which is the interpreter CI runs.
 """
 
 import tomllib
