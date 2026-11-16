@@ -74,6 +74,16 @@ class Go1:
     def environment(self, name: str) -> dict:
         return {}
 
+    def drive(self, name: str, model, ctrl, policy, places: dict):
+        """Steer the published controller along the scenario's route (``lpl_go1.route``).
+
+        livingproof-sim-mujoco v3.2.0 calls this for a scenario with no command that
+        ``manifest.json`` declares. ``step(data)`` sends one velocity command per step.
+        """
+        from lpl_go1.route import drive
+
+        return drive(self, name, model, ctrl, policy, places)
+
 
 class MissingPlace(SystemExit, KeyError):
     """A start place the composed world does not have.
