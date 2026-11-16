@@ -32,10 +32,11 @@ SIM2SIM = "mujoco_playground/experimental/sim2sim/play_go1_joystick.py"
 JOYSTICK = "mujoco_playground/_src/locomotion/go1/joystick.py"
 
 
-def test_profiles_match_the_pinned_v2_0_2_schemas():
+def test_profiles_match_the_pinned_v2_3_0_schemas():
     pins = json.loads((ROOT / "pins.json").read_text())["groups"]
-    assert pins["specs"]["tag"] == "v2.0.2"
-    assert pins["specs"]["commit"].startswith("16524cb")
+    assert pins["specs"]["tag"] == "v2.3.0"
+    assert pins["specs"]["commit"].startswith("57317e6")
+    assert "specs/robots/robot-manifest.schema.json" in pins["specs"]["files"]
     rob = robot()  # validates
     assert rob["id"] == "unitree-go1" and rob["class"] == "quadruped"
     assert [c["name"] for c in rob["configurations"]] == CONFIGS

@@ -83,10 +83,10 @@
     },
     "specs": {
       "repository": "Living-Proof-Labs/robot-capability-specs",
-      "tag": "v2.0.2",
-      "commit": "16524cbfeef18ff0454ebf125668b010d38a3993",
+      "tag": "v2.3.0",
+      "commit": "57317e617014a6df97bb7fba9d92a890af8d42e5",
       "dest": ".cache/specs",
-      "note": "Robot and configuration profile schemas at v2.0.2 (16524cb). This package does not pin a world or a scenario.",
+      "note": "Robot, configuration and robot-manifest schemas at v2.3.0 (57317e6). This package does not pin a world or a scenario.",
       "files": {
         "specs/robots/robot-profile.schema.json": {
           "sha256": "90a02a6b9371cd81b6a5e07cdafeda02727f36c5e17ba9777a9a09807a5d5226",
@@ -96,9 +96,13 @@
           "sha256": "3208a2ca0b852eb9e0654c5e56d95195f1f887428e70a06514f44f96aab81bf0",
           "bytes": 2340
         },
+        "specs/robots/robot-manifest.schema.json": {
+          "sha256": "563076811d78ce8f2326a4253e1e34093d66c6487c0d215903cae4887990d4c4",
+          "bytes": 5880
+        },
         "specs/robots/README.md": {
-          "sha256": "2b9dcf4dfbebb46dd29b7f1c3ddcaec81b53fe4329dec440c2a45fd42116d839",
-          "bytes": 7432
+          "sha256": "261f18839c0d8b35daed027314716c24760d2819a9b87173bbcff81324e53077",
+          "bytes": 8984
         },
         "LICENSES/CC-BY-4.0.txt": {
           "sha256": "d557539df68e771cc1eedcc91d13f70fca930e508d11eedcafa4b15db49e3744",

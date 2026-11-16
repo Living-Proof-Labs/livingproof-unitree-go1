@@ -13,9 +13,10 @@ Living Proof Labs does not train or tune controllers. A robot is validated only 
 
 | File | Purpose |
 |---|---|
-| `robot.json` | Robot profile (robot-capability-specs v2.0.2): quadruped, width 0.282 m and length 0.679 m measured from the mesh vertices, one configuration, MuJoCo |
+| `robot.json` | Robot profile (robot-capability-specs v2.3.0): quadruped, width 0.282 m and length 0.679 m measured from the mesh vertices, one configuration, MuJoCo |
+| `manifest.json` | Robot manifest (`livingproof-robot-manifest/0.1`, robot-capability-specs v2.3.0): the scenario ids this adapter supports |
 | `configurations/playground.json` | MuJoCo Playground `go1_policy.onnx`, on Playground's own Go1 MJCF and `<position>` actuators (kp 35, joint damping 0.5) |
-| `pins.json` | Upstream model, policy and robot-profile schema files by repository, commit and sha256. Nothing is vendored. No world and no scenario |
+| `pins.json` | Upstream model, policy and schema files by repository, commit and sha256, including the robot-manifest schema at v2.3.0. Nothing is vendored. No world and no scenario file |
 | `runner.json` | Runner settings that are not part of a specification, all marked `chosen`: the sample rate and the stand length. Trials start at the exact nominal pose. There is no seed and no noise |
 | `src/lpl_go1/` | Scene (the Playground model only), profiles and the Playground reference loop. This package does not record a scenario |
 | `pyproject.toml` | Pins livingproof-sim-mujoco v2.0.3 (`292589ad15582c26cff2bffcc851e3abaf4ea708`) as the library the adapter imports. That tag is not a verification-run pin |
@@ -38,7 +39,7 @@ Living Proof Labs does not train or tune controllers. A robot is validated only 
 
 ```
 uv sync && uv run pytest tests          # uv sync + tests (the session fetches and verifies every pin)
-uv run ruff check . && uv run ruff format --check .          # ruff, formatting, profiles against the pinned v2.0.2 schemas
+uv run ruff check . && uv run ruff format --check .          # ruff, formatting, profiles against the pinned v2.3.0 schemas
 uv run pytest tests           # pytest: schemas, gains, adapter, configurations
 task reference      # tick-by-tick match against play_go1_joystick.py (500 ticks)
 task profile:measure   # width, length and mass from the pinned model
