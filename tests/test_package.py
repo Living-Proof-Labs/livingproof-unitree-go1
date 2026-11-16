@@ -163,6 +163,30 @@ def test_runner_settings_are_robot_timing_only():
 
 
 def test_fetch_rejects_a_download_with_the_wrong_checksum(tmp_path):
+    """A body of the pinned length with the wrong sha256 is a ChecksumError.
+
+    ``bytes`` is the length of the body the opener returns. v3 refuses a pin
+    that omits it with ValueError before any download; that case is separate.
+    """
+    body = b"tampered"
+    pins = {
+        "groups": {
+            "g": {
+                "repository": "o/r",
+                "commit": "c",
+                "dest": "d",
+                "files": {"f.txt": {"sha256": "0" * 64, "bytes": len(body)}},
+            }
+        }
+    }
+    (tmp_path / "pins.json").write_text(json.dumps(pins))
+    with pytest.raises(ChecksumError, match="f.txt") as raised:
+        fetch(tmp_path, opener=lambda url: io.BytesIO(body))
+    assert not isinstance(raised.value, ValueError)
+    assert not (tmp_path / "d" / "f.txt").exists()
+
+
+def test_fetch_rejects_a_pin_missing_bytes_before_any_download(tmp_path):
     pins = {
         "groups": {
             "g": {
@@ -174,8 +198,16 @@ def test_fetch_rejects_a_download_with_the_wrong_checksum(tmp_path):
         }
     }
     (tmp_path / "pins.json").write_text(json.dumps(pins))
-    with pytest.raises(ChecksumError, match="f.txt"):
-        fetch(tmp_path, opener=lambda url: io.BytesIO(b"tampered"))
+    called = False
+
+    def opener(url):
+        nonlocal called
+        called = True
+        return io.BytesIO(b"tampered")
+
+    with pytest.raises(ValueError, match="missing bytes"):
+        fetch(tmp_path, opener=opener)
+    assert called is False
     assert not (tmp_path / "d" / "f.txt").exists()
 
 

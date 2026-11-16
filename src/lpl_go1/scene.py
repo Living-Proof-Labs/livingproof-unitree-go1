@@ -2,8 +2,8 @@
 """The Playground Go1 scene.
 
 The Playground MJCF is loaded unchanged: its solver options and its feet-only collision
-pairs are not touched. This package does not load a world. A caller that runs a scenario
-adds that world's geometry to the compiled model.
+pairs are not touched. This package does not add a world. livingproof-sim-mujoco v3
+supplies the world from its vendored release when evidence or stand runs with --lock.
 """
 
 from __future__ import annotations
