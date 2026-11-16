@@ -22,7 +22,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
         with:
-          python-version: '3.12'
+          python-version: '3.12.16'
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libosmesa6
       - name: Install uv
         run: |
