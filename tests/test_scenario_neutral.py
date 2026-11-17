@@ -20,6 +20,13 @@ GUARD = Path(__file__)
 # The declaration test names the ids on purpose. The manifest may contain only
 # the declared ids, which are removed before the name search.
 SKIP_NAME_SEARCH = {
+    # Exact released inputs for adapter-only regression tests; not runtime selection.
+    (ROOT / "tests/test_shared_traversals.py").resolve(),
+    (ROOT / "tests/data/reuse/world.json").resolve(),
+    (ROOT / "tests/data/reuse/release.json").resolve(),
+    (ROOT / "tests/data/reuse/left.json").resolve(),
+    (ROOT / "tests/data/reuse/right.json").resolve(),
+    (ROOT / "tests/data/reuse/sources.json").resolve(),
     GUARD.resolve(),
     (ROOT / "tests/test_supported_scenarios.py").resolve(),
     # Runs the declared scenarios end to end, so it names their worlds (#40, 11b).
