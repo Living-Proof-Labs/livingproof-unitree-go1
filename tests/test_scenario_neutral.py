@@ -32,7 +32,14 @@ SKIP_NAME_SEARCH = {
     # Runs the declared scenarios end to end, so it names their worlds (#40, 11b).
     (ROOT / "tests/test_route_drive.py").resolve(),
 }
-DECLARED_ID = {"manifest.json": ('"walk-hallway"', '"walk-corner"')}
+DECLARED_ID = {
+    "manifest.json": (
+        '"walk-hallway"',
+        '"walk-corner"',
+        '"walk-corner-left"',
+        '"walk-corner-right"',
+    )
+}
 # Names of scenarios and worlds. The search is case-insensitive.
 NAMES = re.compile(r"hallway|walk-hallway|hallway-open|corner", re.IGNORECASE)
 SELECTING_KEYS = {"world", "worlds", "scenario"}
