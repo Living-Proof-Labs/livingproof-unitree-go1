@@ -31,7 +31,9 @@ def test_manifest_declares_walk_hallway_and_walk_corner():
         manifest = json.loads(text)
         scenarios = manifest.get("scenarios")
         if scenarios != ["walk-hallway", "walk-corner", "walk-corner-left", "walk-corner-right"]:
-            problems.append(f"scenarios is {scenarios!r}, expected ['walk-hallway', 'walk-corner']")
+            problems.append(
+                f"scenarios is {scenarios!r}, expected historical plus left/right declarations"
+            )
     spec = json.loads((ROOT / "pins.json").read_text())["groups"]["specs"]
     if spec.get("tag") != "v2.3.0" or spec.get("commit") != SPEC_COMMIT:
         problems.append(
