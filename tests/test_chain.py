@@ -59,7 +59,8 @@ def test_test_workflow_runs_on_pull_request():
         "actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c",
     ):
         assert action in body and action in docs
-    assert "workflow_call" not in body
+    assert "  workflow_call:" in body
+    assert not re.search(r"^  [\w-]+:\n(?:    .*\n)*?    uses:", body + "\n", re.M)
     assert "uses: Living-Proof-Labs/capability-verifier/" not in body
     assert not (ROOT / ".github/workflows/verify.yml").exists()
     assert sorted(p.name for p in (ROOT / ".github/workflows").iterdir()) == [
