@@ -30,8 +30,10 @@ def test_manifest_declares_walk_hallway_and_walk_corner():
         text = path.read_text()
         manifest = json.loads(text)
         scenarios = manifest.get("scenarios")
-        if scenarios != ["walk-hallway", "walk-corner"]:
-            problems.append(f"scenarios is {scenarios!r}, expected ['walk-hallway', 'walk-corner']")
+        if scenarios != ["walk-hallway", "walk-corner", "walk-corner-left", "walk-corner-right"]:
+            problems.append(
+                f"scenarios is {scenarios!r}, expected historical plus left/right declarations"
+            )
     spec = json.loads((ROOT / "pins.json").read_text())["groups"]["specs"]
     if spec.get("tag") != "v2.3.0" or spec.get("commit") != SPEC_COMMIT:
         problems.append(
@@ -54,7 +56,12 @@ def test_manifest_declares_walk_hallway_and_walk_corner():
                 from lpl_go1.profiles import manifest as load_manifest
 
                 loaded = load_manifest()
-                if loaded.get("scenarios") != ["walk-hallway", "walk-corner"]:
+                if loaded.get("scenarios") != [
+                    "walk-hallway",
+                    "walk-corner",
+                    "walk-corner-left",
+                    "walk-corner-right",
+                ]:
                     problems.append(f"loader returned {loaded.get('scenarios')!r}")
     assert problems == []
 
