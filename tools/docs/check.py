@@ -2,20 +2,68 @@
 """Check built local targets/fragments, brand, and build identity."""
 
 import json
+import re
 from html.parser import HTMLParser
 from pathlib import Path
-import re
 from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[2] / "artifacts/docs/html"
 
 
-class Page(HTMLParser):
+class VisibleHTMLParser(HTMLParser):
+    """Ignore non-rendered HTML; CSS visibility is checked in the browser tests."""
+
+    VOID_TAGS = (
+        "area",
+        "base",
+        "br",
+        "col",
+        "embed",
+        "hr",
+        "img",
+        "input",
+        "link",
+        "meta",
+        "param",
+        "source",
+        "track",
+        "wbr",
+    )
+
+    def __init__(self):
+        super().__init__()
+        self.hidden_elements = []
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        style = re.sub(r"\s+", "", attrs.get("style", "").lower())
+        hidden = (
+            tag in ("script", "style", "template")
+            or "hidden" in attrs
+            or "display:none" in style
+            or "visibility:hidden" in style
+        )
+        if tag not in self.VOID_TAGS:
+            self.hidden_elements.append((tag, hidden))
+
+    def handle_endtag(self, tag):
+        for index in range(len(self.hidden_elements) - 1, -1, -1):
+            if self.hidden_elements[index][0] == tag:
+                del self.hidden_elements[index:]
+                break
+
+
+def commit_pattern(commit):
+    """Match this build's full or abbreviated identity, not arbitrary hex words."""
+    prefixes = "|".join(re.escape(commit[:length]) for length in range(7, 41))
+    return re.compile(r"\b(?:" + prefixes + r")\b", re.IGNORECASE)
+
+
+class Page(VisibleHTMLParser):
     def __init__(self, text):
         super().__init__()
         self.ids = set()
         self.links = []
-        self.skip = 0
         self.in_source_repo = 0
         self.in_footer = 0
         self.in_link = False
@@ -29,13 +77,14 @@ class Page(HTMLParser):
         self.feed(text)
 
     def handle_starttag(self, tag, attrs):
+        super().handle_starttag(tag, attrs)
         attrs = dict(attrs)
         classes = set(attrs.get("class", "").split())
-        if tag in ("script", "style"):
-            self.skip += 1
-        if "md-source__repository" in classes or self.in_source_repo:
+        if tag not in self.VOID_TAGS and (
+            "md-source__repository" in classes or self.in_source_repo
+        ):
             self.in_source_repo += 1
-        if tag == "footer" or self.in_footer:
+        if tag not in self.VOID_TAGS and (tag == "footer" or self.in_footer):
             self.in_footer += 1
         if tag == "a" and "md-source" in classes:
             self.source_links.append(attrs.get("href", ""))
@@ -51,8 +100,9 @@ class Page(HTMLParser):
             self.links.append(attrs["src"])
 
     def handle_endtag(self, tag):
-        if tag in ("script", "style") and self.skip:
-            self.skip -= 1
+        if tag in self.VOID_TAGS:
+            return
+        super().handle_endtag(tag)
         if self.in_source_repo:
             self.in_source_repo -= 1
         if self.in_footer:
@@ -66,7 +116,7 @@ class Page(HTMLParser):
             self.in_link = False
 
     def handle_data(self, data):
-        if self.skip:
+        if any(hidden for _, hidden in self.hidden_elements):
             return
         self.visible_text.append(data)
         if self.in_source_repo:
@@ -87,7 +137,7 @@ def check():
     assert len(pages) >= 7
     record = json.loads((ROOT / "build.json").read_text())
     commit = record["source_commit"]
-    sha_pattern = re.compile(r"\b[0-9a-f]{7,40}\b", re.IGNORECASE)
+    sha_pattern = commit_pattern(commit)
     checked = 0
     for path, page in pages.items():
         for link in page.links:
@@ -114,7 +164,7 @@ def check():
             assert commit in title, (path, title)
         if path.name != "version.html":
             visible = " ".join(page.visible_text)
-            assert commit[:7] not in visible, path
+            assert not sha_pattern.search(visible), (path, visible)
     assert commit in (ROOT / "version.html").read_text()
     assert (ROOT / "search.json").is_file()
     print(f"PASS: {len(pages)} branded pages, {checked} local targets/fragments, source identity")
