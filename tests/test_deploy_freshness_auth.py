@@ -355,6 +355,19 @@ def _workflow_texts() -> list[tuple[str, str]]:
     return [(path.name, path.read_text(encoding="utf-8")) for path in paths]
 
 
+def _select_docs_guard(steps: list[list[str]]) -> list[str]:
+    guards = [
+        step
+        for step in steps
+        if _step_scalar(step, "name") == "Require current main inside deployment lock"
+    ]
+    assert len(guards) == 1, "exactly one freshness guard is required"
+    guard = guards[0]
+    assert steps[-2] == guard, "freshness must be the final check before deployment"
+    assert _step_scalar(steps[-1], "uses").startswith("actions/deploy-pages@")
+    return guard
+
+
 def _docs_guard() -> tuple[list[str], str]:
     text = (WORKFLOWS / "docs.yml").read_text(encoding="utf-8")
     jobs = {job["name"]: job for job in _extract_jobs(text)}
@@ -362,7 +375,7 @@ def _docs_guard() -> tuple[list[str], str]:
     lines = deploy["lines"]
     assert isinstance(lines, list)
     steps = _extract_steps(lines)
-    guard = steps[0]
+    guard = _select_docs_guard(steps)
     return guard, _run_script(guard)
 
 
@@ -385,9 +398,15 @@ def test_repository_workflows_authenticate_every_main_freshness_read():
         "pages": "write",
         "id-token": "write",
     }
+    assert re.search(r"^      group: go1-pages$", "\n".join(lines), re.M)
+    assert re.search(r"^      cancel-in-progress: false$", "\n".join(lines), re.M)
     steps = _extract_steps(lines)
+    assert any(
+        _step_scalar(step, "name") == "Require matching ID and name readback of the exact tar"
+        for step in steps[:-2]
+    )
     guard, script = _docs_guard()
-    assert steps[0] == guard
+    assert steps[-2] == guard
     assert _step_scalar(guard, "name") == "Require current main inside deployment lock"
     env = {entry["name"]: entry["value"] for entry in _envs_at(guard, 8)}
     assert env["GH_TOKEN"] == "${{ github.token }}"
@@ -396,7 +415,7 @@ def test_repository_workflows_authenticate_every_main_freshness_read():
     assert FRESHNESS in script
     assert "urlopen" not in script
     assert 'test "$current" = "$CANDIDATE"' in script
-    assert _step_scalar(steps[1], "uses").startswith("actions/deploy-pages@")
+    assert _step_scalar(steps[-1], "uses").startswith("actions/deploy-pages@")
 
 
 def test_unauthenticated_urllib_freshness_read_fails():
@@ -488,3 +507,32 @@ def test_deploy_guard_still_aborts_when_main_moved_or_the_read_fails(
     assert (tmp_path / "token").read_text(encoding="utf-8") == "workflow-token\n"
     args = (tmp_path / "args").read_text(encoding="utf-8")
     assert "repos/Living-Proof-Labs/livingproof-unitree-go1/git/ref/heads/main" in args
+
+
+@pytest.mark.parametrize("mutation", ["moved", "missing", "duplicate"])
+def test_freshness_guard_selection_rejects_invalid_position_or_count(mutation):
+    text = (WORKFLOWS / "docs.yml").read_text(encoding="utf-8")
+    deploy = next(job for job in _extract_jobs(text) if job["name"] == "deploy")
+    steps = _extract_steps(deploy["lines"])
+    guard = _select_docs_guard(steps)
+    if mutation == "moved":
+        steps.remove(guard)
+        steps.insert(0, guard)
+    elif mutation == "missing":
+        steps.remove(guard)
+    else:
+        steps.insert(0, guard)
+    with pytest.raises(AssertionError):
+        _select_docs_guard(steps)
+
+
+def test_removing_the_actual_freshness_guard_token_fails():
+    text = (WORKFLOWS / "docs.yml").read_text(encoding="utf-8")
+    guard, _ = _docs_guard()
+    original = "\n".join(guard)
+    stripped = original.replace("          GH_TOKEN: ${{ github.token }}\n", "", 1)
+    assert stripped != original
+    mutated = text.replace(original, stripped, 1)
+    assert mutated != text
+    problems = freshness_problems("docs.yml", mutated)
+    assert any("without authentication" in problem for problem in problems), problems
