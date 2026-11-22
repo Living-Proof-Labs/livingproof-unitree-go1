@@ -148,10 +148,12 @@ def build():
     (source / "build.json").write_text(json.dumps(record, indent=2) + "\n")
     (source / "version.md").write_text(
         f"# Version and source\n\nDocs: {label}. "
-        + (f"Published source release: [{label}]({release['release_url']}). "
-           if release["kind"] == "release" else "This is development documentation, not a package release. ")
-        +
-        "Historical rendered manuals are not maintained; use the matching "
+        + (
+            f"Published source release: [{label}]({release['release_url']}). "
+            if release["kind"] == "release"
+            else "This is development documentation, not a package release. "
+        )
+        + "Historical rendered manuals are not maintained; use the matching "
         f"[published source tag]({REPO}/tags) for an adopted release.\n\n"
         f'[Docs: {label}]({source_link} "{commit}"); dirty checkout: **{str(dirty).lower()}**. '
         "A dirty preview has changes beyond that commit; source hashes below identify its inputs.\n\n"
