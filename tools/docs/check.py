@@ -109,7 +109,7 @@ class Page(VisibleHTMLParser):
             self.in_footer -= 1
         if tag == "a" and self.in_link:
             text = "".join(self.link_text).strip()
-            if text.startswith("Docs: development"):
+            if text.startswith("Docs: "):
                 self.docs_links.append(
                     (text, self.link_attrs.get("href", ""), self.link_attrs.get("title", ""))
                 )
@@ -137,6 +137,7 @@ def check():
     assert len(pages) >= 7
     record = json.loads((ROOT / "build.json").read_text())
     commit = record["source_commit"]
+    label = record.get("label", "development")
     sha_pattern = commit_pattern(commit)
     checked = 0
     for path, page in pages.items():
@@ -152,13 +153,13 @@ def check():
                 assert unquote(url.fragment) in pages[target].ids, (path, link)
             checked += 1
         repo_text = "".join(page.source_repos).strip()
-        assert "Source · development" in repo_text, path
+        assert f"Source · {label}" in repo_text, path
         assert not sha_pattern.search(repo_text), (path, repo_text)
         assert any(commit in href for href in page.source_links), path
         footer_text = " ".join(page.footer_text)
         assert not sha_pattern.search(footer_text), (path, footer_text)
         for link_text, href, title in page.docs_links:
-            assert link_text == "Docs: development", (path, link_text)
+            assert link_text == f"Docs: {label}", (path, link_text)
             assert not sha_pattern.search(link_text), (path, link_text)
             assert commit in href, (path, href)
             assert commit in title, (path, title)

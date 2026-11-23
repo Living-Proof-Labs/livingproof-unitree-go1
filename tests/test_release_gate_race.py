@@ -12,8 +12,8 @@ last tag in one version.
 Offline:
 - every workflow declares a name, triggers and jobs, and the Test workflow keeps
   the push-on-main run that the gate needs;
-- the privileged `workflow_run` workflow stays a single call to the shared release
-  workflow (no steps, no secrets, no cancel-in-progress, minimal permissions);
+- only the shared release call holds contents: write; the exact dependent docs
+  call has separate Pages permissions, no steps and no secrets;
 - the real `if:` is evaluated over a timeline of pushes and Test completions.
 LIVINGPROOF_NETWORK=1 also checks the pinned shared workflow still checks out
 GITHUB_SHA and still refuses to run when HEAD is not GITHUB_SHA, which is what
@@ -104,8 +104,7 @@ def gate_allows(expr: str, context: dict) -> bool:
 
 def release_if() -> str:
     jobs = _jobs(_code(RELEASE.read_text(encoding="utf-8")))
-    assert len(jobs) == 1, "the release workflow should have exactly one job"
-    ((_, body),) = jobs.items()
+    body = jobs["release"]
     cond = _if_expr(body)
     assert isinstance(cond, str) and cond.strip(), "the release job needs an explicit if:"
     return cond
@@ -248,15 +247,14 @@ def test_test_workflow_still_runs_on_push_to_main() -> None:
     assert "workflow_run" not in triggers
 
 
-def test_release_workflow_is_one_privileged_call_and_runs_no_repository_code() -> None:
-    text = RELEASE.read_text(encoding="utf-8")
+def _assert_release_job_boundaries(text: str) -> None:
     code = _code(text)
     perms = _top_section(code, "permissions")
     assert perms is not None and perms.strip() == "contents: read"
     jobs = _jobs(code)
-    assert len(jobs) == 1, "a workflow_run workflow holds a write token: keep it to one job"
-    ((name, body),) = jobs.items()
-    assert not re.search(r"^    steps:\s*$", body, re.M), (
+    assert set(jobs) == {"release", "deploy-manual"}
+    name, body = "release", jobs["release"]
+    assert not re.search(r"^    steps:", body, re.M), (
         "no steps: nothing from the repository runs with contents: write"
     )
     job_perms = re.search(r"^    permissions:\n((?:      .+\n?)+)", body + "\n", re.M)
@@ -268,9 +266,60 @@ def test_release_workflow_is_one_privileged_call_and_runs_no_repository_code() -
     )
     for forbidden in ("secrets:", "with:", "env:", "continue-on-error:", "needs:"):
         assert not re.search(rf"^    {re.escape(forbidden)}", body, re.M), name
+    # Check the entire delivery call: no extra steps, secrets or broader permissions.
+    assert (
+        jobs["deploy-manual"].strip()
+        == """    needs: release
+    if: needs.release.outputs.published == 'true'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/docs.yml
+    with:
+      release_tag: ${{ needs.release.outputs.git-tag }}
+      release_version: ${{ needs.release.outputs.version }}""".strip()
+    )
     # A new Test run must never cancel a release that is already tagging.
     assert _top_section(code, "concurrency") is None
     assert "cancel-in-progress" not in text
+
+
+def test_release_workflow_keeps_one_contents_writer_and_exact_gated_docs_call() -> None:
+    _assert_release_job_boundaries(RELEASE.read_text(encoding="utf-8"))
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    ["extra-job", "writer-steps", "delivery-write", "ungated", "no-dependency", "wrong-workflow"],
+)
+def test_release_job_boundary_mutations_are_rejected(mutation):
+    text = RELEASE.read_text(encoding="utf-8")
+    if mutation == "extra-job":
+        text += "\n  extra:\n    runs-on: ubuntu-latest\n"
+    elif mutation == "writer-steps":
+        text = text.replace("  release:\n", "  release:\n    steps: []\n", 1)
+    elif mutation == "delivery-write":
+        text = text.replace("      contents: read", "      contents: write", 1)
+    elif mutation == "ungated":
+        text = text.replace("if: needs.release.outputs.published == 'true'", "if: always()", 1)
+    elif mutation == "no-dependency":
+        text = text.replace("    needs: release\n", "", 1)
+    else:
+        text = text.replace(
+            "uses: ./.github/workflows/docs.yml", "uses: ./.github/workflows/other.yml", 1
+        )
+    with pytest.raises(AssertionError):
+        _assert_release_job_boundaries(text)
+
+
+@pytest.mark.parametrize("published", ["true", "false", "", "missing", "failed", "skipped"])
+def test_docs_delivery_requires_published_release(published):
+    job = _jobs(_code(RELEASE.read_text(encoding="utf-8")))["deploy-manual"]
+    assert re.search(r"^    needs: release$", job, re.M)
+    assert gate_allows(
+        _if_expr(job), {"needs": {"release": {"outputs": {"published": published}}}}
+    ) == (published == "true")
 
 
 def test_release_workflow_listens_only_to_the_test_workflow_by_its_exact_name() -> None:
