@@ -964,6 +964,24 @@ def _functions(tokens: list[tuple]) -> list[dict]:
     return found
 
 
+def _names_compared_unequal_to(tokens: list[tuple], expected_name: str) -> set[str]:
+    """Identifiers a throw's controlling if compares with ``!== expected_name``."""
+    found: set[str] = set()
+    for throw_at, _message in _error_throws(tokens):
+        condition = _controlling_condition(tokens, throw_at)
+        if not condition:
+            continue
+        for index, tok in enumerate(condition):
+            if tok != ("punct", "!==") or index == 0 or index + 1 >= len(condition):
+                continue
+            left, right = condition[index - 1], condition[index + 1]
+            if left == ("ident", expected_name) and right[0] == "ident":
+                found.add(right[1])
+            elif right == ("ident", expected_name) and left[0] == "ident":
+                found.add(left[1])
+    return found
+
+
 def _param_name(param: list[tuple]) -> str | None:
     idents = [tok[1] for tok in param if tok[0] == "ident"]
     return idents[0] if idents else None
@@ -1044,19 +1062,15 @@ def _assert_fetch_cannot_change_released_commit(runner: str) -> None:
     assert peel_names, (
         "the fetched tag must be peeled with git rev-parse --verify refs/tags/<tag>^{commit}"
     )
-    verified = False
-    for throw_at, _message in _error_throws(verifier["body"]):
-        condition = _controlling_condition(verifier["body"], throw_at)
-        if condition is None:
-            continue
-        for name in peel_names:
-            patterns = (
-                [("ident", name), ("punct", "!=="), ("ident", expected_name)],
-                [("ident", expected_name), ("punct", "!=="), ("ident", name)],
-            )
-            if any(_sequence(condition, pattern) for pattern in patterns):
-                verified = True
-    assert verified, "tag verification must throw when the peeled tag is not the expected commit"
+    compared = _names_compared_unequal_to(verifier["body"], expected_name)
+    assert compared, "tag verification must throw when the peeled tag is not the expected commit"
+    # Each of the two asserts above has to be able to fail on its own. This link
+    # runs only when both found something, so a missing peel does not also fail
+    # the comparison, and a missing comparison does not also fail the peel.
+    if peel_names and compared:
+        assert set(peel_names) & compared, (
+            "the inequality must compare the peeled tag to the expected commit"
+        )
 
     run = functions.get("run")
     assert run, "run() must call the tag verification with the planned commit"
@@ -1156,6 +1170,13 @@ def test_github_sha_variable_is_refused_when_it_is_not_the_expected_commit() -> 
             ),
             id="no-head-mismatch-throw",
         ),
+        pytest.param(
+            _PLAN_FIXTURE.replace(
+                "const commit = git('rev-parse', 'HEAD').trim();",
+                "const commit = expected;",
+            ),
+            id="commit-copied-from-expected",
+        ),
     ],
 )
 def test_plan_fixture_missing_the_head_guard_is_refused(plan: str) -> None:
@@ -1200,6 +1221,32 @@ def test_branch_fetch_fixture_is_refused() -> None:
     runner = _RUN_FIXTURE.replace(
         "`refs/tags/${gitTag}:refs/tags/${gitTag}`",
         "`refs/heads/main:refs/heads/main`",
+    )
+    with pytest.raises(AssertionError):
+        _assert_fetch_cannot_change_released_commit(runner)
+
+
+def test_run_fixture_without_the_tag_peel_comparison_is_refused() -> None:
+    runner = _RUN_FIXTURE.replace("if (taggedCommit !== expectedCommit)", "if (false)")
+    with pytest.raises(AssertionError):
+        _assert_fetch_cannot_change_released_commit(runner)
+
+
+def test_run_fixture_without_the_tag_peel_is_refused() -> None:
+    runner = _RUN_FIXTURE.replace(
+        "const taggedCommit = execFileSync('git', ['rev-parse', '--verify', "
+        "`refs/tags/${gitTag}^{commit}`], {}).trim();\n  ",
+        "",
+    )
+    with pytest.raises(AssertionError):
+        _assert_fetch_cannot_change_released_commit(runner)
+
+
+def test_run_fixture_with_git_checkout_is_refused() -> None:
+    runner = _RUN_FIXTURE.replace(
+        "execFileSync('git', ['fetch', 'origin', `refs/tags/${gitTag}:refs/tags/${gitTag}`, '--force'], {});\n  ",
+        "execFileSync('git', ['fetch', 'origin', `refs/tags/${gitTag}:refs/tags/${gitTag}`, '--force'], {});\n"
+        "  execFileSync('git', ['checkout', gitTag], {});\n  ",
     )
     with pytest.raises(AssertionError):
         _assert_fetch_cannot_change_released_commit(runner)
