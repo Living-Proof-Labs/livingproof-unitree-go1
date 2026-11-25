@@ -15,11 +15,11 @@ Offline:
 - only the shared release call holds contents: write; the exact dependent docs
   call has separate Pages permissions, no steps and no secrets;
 - the real `if:` is evaluated over a timeline of pushes and Test completions.
-LIVINGPROOF_NETWORK=1 also checks the pinned shared workflow still releases that
-commit. Checkout has no ref override. plan.mjs refuses when HEAD is not the
-expected commit, and run.mjs passes GITHUB_SHA into planVersion unless the run
-is a candidate. run.mjs does fetch, but only refs/tags/<tag> onto that same tag,
-then refuses if the tag is not the commit planVersion accepted.
+Offline fixtures cover that contract without a network: plan.mjs refuses when
+HEAD is not the expected commit, run.mjs passes GITHUB_SHA into planVersion
+unless the run is a candidate, and the only fetch copies one tag onto itself.
+A GITHUB_SHA kept in a variable counts only when that variable is the expected
+commit. LIVINGPROOF_NETWORK=1 checks the same facts on the pinned tag.
 """
 
 from __future__ import annotations
@@ -1077,6 +1077,132 @@ def _assert_fetch_cannot_change_released_commit(runner: str) -> None:
     planned = _calls(run["body"], _imported_names(tokens, "planVersion", "./plan.mjs"))
     assert planned, "planVersion must still run in the publish path"
     assert planned[0][0] < calls[0][0], "planVersion must accept HEAD before the tag fetch is used"
+
+
+# Minimal copies of the pinned scripts. CI does not set LIVINGPROOF_NETWORK, so
+# these fixtures are what actually runs the guard checks.
+_PLAN_FIXTURE = """\
+export async function planVersion(cwd, expected) {
+  const commit = git('rev-parse', 'HEAD').trim();
+  if (!shaPattern.test(expected ?? '') || commit !== expected) {
+    throw new Error('Checked-out HEAD must match the triggering commit');
+  }
+  return { commit };
+}
+"""
+
+_RUN_FIXTURE = """\
+import { planVersion } from './plan.mjs';
+
+export async function verifyTagMatchesCommit(gitTag, expectedCommit) {
+  execFileSync('git', ['fetch', 'origin', `refs/tags/${gitTag}:refs/tags/${gitTag}`, '--force'], {});
+  const taggedCommit = execFileSync('git', ['rev-parse', '--verify', `refs/tags/${gitTag}^{commit}`], {}).trim();
+  if (taggedCommit !== expectedCommit) {
+    throw new Error(`Tag ${gitTag} resolves to ${taggedCommit}, expected ${expectedCommit}`);
+  }
+}
+
+export async function run() {
+  const candidate = false;
+  const expected = candidate ? process.env.RELEASE_EXPECTED_COMMIT : process.env.GITHUB_SHA;
+  const plan = await planVersion(cwd, expected, { candidate });
+  const head = plan.commit;
+  verifyTagMatchesCommit(result.nextRelease.gitTag, head, { cwd, fetchTag: true });
+}
+"""
+
+_SHA_LINE = (
+    "const expected = candidate ? process.env.RELEASE_EXPECTED_COMMIT : process.env.GITHUB_SHA;"
+)
+_BOUND_SHA_LINE = """\
+const triggering = process.env.GITHUB_SHA;
+  const expected = candidate ? process.env.RELEASE_EXPECTED_COMMIT : triggering;"""
+_UNBOUND_SHA_LINE = """\
+const triggering = process.env.GITHUB_SHA;
+  const expected = candidate ? process.env.RELEASE_EXPECTED_COMMIT : process.env.RELEASE_EXPECTED_COMMIT;"""
+
+
+def _run_with_expected_line(line: str) -> str:
+    return _RUN_FIXTURE.replace(_SHA_LINE, line)
+
+
+def test_release_script_fixtures_keep_head_guard_sha_and_tag_fetch() -> None:
+    _assert_plan_refuses_head_mismatch(_PLAN_FIXTURE)
+    _assert_runner_passes_github_sha_to_plan(_RUN_FIXTURE)
+    _assert_fetch_cannot_change_released_commit(_RUN_FIXTURE)
+
+
+def test_github_sha_variable_passes_when_it_is_the_expected_commit() -> None:
+    """An alias counts only because planVersion receives it as the expected commit."""
+    _assert_runner_passes_github_sha_to_plan(_run_with_expected_line(_BOUND_SHA_LINE))
+
+
+def test_github_sha_variable_is_refused_when_it_is_not_the_expected_commit() -> None:
+    with pytest.raises(AssertionError):
+        _assert_runner_passes_github_sha_to_plan(_run_with_expected_line(_UNBOUND_SHA_LINE))
+
+
+@pytest.mark.parametrize(
+    "plan",
+    [
+        pytest.param(
+            _PLAN_FIXTURE.replace("commit !== expected", "true"),
+            id="no-head-comparison",
+        ),
+        pytest.param(
+            _PLAN_FIXTURE.replace(
+                "throw new Error('Checked-out HEAD must match the triggering commit');",
+                "return;",
+            ),
+            id="no-head-mismatch-throw",
+        ),
+    ],
+)
+def test_plan_fixture_missing_the_head_guard_is_refused(plan: str) -> None:
+    with pytest.raises(AssertionError):
+        _assert_plan_refuses_head_mismatch(plan)
+
+
+@pytest.mark.parametrize(
+    "runner",
+    [
+        pytest.param(
+            _run_with_expected_line(
+                "const expected = candidate ? process.env.RELEASE_EXPECTED_COMMIT "
+                ": process.env.RELEASE_EXPECTED_COMMIT;"
+            ),
+            id="non-candidate-is-not-github-sha",
+        ),
+        pytest.param(
+            _run_with_expected_line(
+                "const expected = candidate ? process.env.GITHUB_SHA "
+                ": process.env.RELEASE_EXPECTED_COMMIT;"
+            ),
+            id="github-sha-on-the-candidate-arm",
+        ),
+    ],
+)
+def test_run_fixture_missing_the_github_sha_binding_is_refused(runner: str) -> None:
+    with pytest.raises(AssertionError):
+        _assert_runner_passes_github_sha_to_plan(runner)
+
+
+def test_run_fixture_missing_the_tag_fetch_is_refused() -> None:
+    runner = _RUN_FIXTURE.replace(
+        "execFileSync('git', ['fetch', 'origin', `refs/tags/${gitTag}:refs/tags/${gitTag}`, '--force'], {});\n  ",
+        "",
+    )
+    with pytest.raises(AssertionError):
+        _assert_fetch_cannot_change_released_commit(runner)
+
+
+def test_branch_fetch_fixture_is_refused() -> None:
+    runner = _RUN_FIXTURE.replace(
+        "`refs/tags/${gitTag}:refs/tags/${gitTag}`",
+        "`refs/heads/main:refs/heads/main`",
+    )
+    with pytest.raises(AssertionError):
+        _assert_fetch_cannot_change_released_commit(runner)
 
 
 @pytest.mark.skipif(not os.environ.get("LIVINGPROOF_NETWORK"), reason="set LIVINGPROOF_NETWORK=1")
